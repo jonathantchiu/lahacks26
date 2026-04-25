@@ -15,7 +15,7 @@
 ```
 TIMELINE (36 hours: Friday 7 PM - Sunday 7 AM)
 
-Person A: ML / Backend Core
+Person A: ML / Backend Core (Sartaj)
   Hours 0-1:    Vultr GPU setup + environment install
   Hours 1-3.5:  Data collection + labeling (on Vultr)
   Hours 3.5-5:  Model training on Vultr GPU
@@ -25,7 +25,7 @@ Person A: ML / Backend Core
   Hours 12-14:  Integration + event pipeline
   Hours 14-16:  Polish + fallback handling
 
-Person B: API / Infrastructure
+Person B: API / Infrastructure (Ved)
   Hours 0-2:    FastAPI scaffold + MongoDB setup
   Hours 2-5:    MongoDB models + camera CRUD API
   Hours 5-7:    WebSocket endpoints (stream + events)
@@ -33,7 +33,7 @@ Person B: API / Infrastructure
   Hours 10-14:  Integration with Person A services
   Hours 14-16:  Deploy + domain + polish
 
-Person C: Frontend + Solana
+Person C: Frontend + Solana (Jonny)
   Hours 0-2:    Cloudinary React scaffold + routing
   Hours 2-5:    Dashboard page (camera grid + live feeds)
   Hours 5-8:    Camera setup page
