@@ -61,17 +61,25 @@ def _upload_sync(data: bytes, *, resource_type: str, folder: str, ext: str) -> s
 async def upload_image(data: bytes, folder: str = "frames", ext: str = "jpg") -> str:
     if not _is_configured():
         return _stub_url(folder, ext)
-    return await asyncio.to_thread(
-        _upload_sync, data, resource_type="image", folder=folder, ext=ext
-    )
+    try:
+        return await asyncio.to_thread(
+            _upload_sync, data, resource_type="image", folder=folder, ext=ext
+        )
+    except Exception:
+        logger.exception("Cloudinary image upload failed; using stub URL")
+        return _stub_url(folder, ext)
 
 
 async def upload_audio(data: bytes, folder: str = "narration", ext: str = "mp3") -> str:
     if not _is_configured():
         return _stub_url(folder, ext)
-    return await asyncio.to_thread(
-        _upload_sync, data, resource_type="video", folder=folder, ext=ext
-    )
+    try:
+        return await asyncio.to_thread(
+            _upload_sync, data, resource_type="video", folder=folder, ext=ext
+        )
+    except Exception:
+        logger.exception("Cloudinary audio upload failed; using stub URL")
+        return _stub_url(folder, ext)
 
 
 async def upload_frames(frames: list[bytes]) -> list[str]:

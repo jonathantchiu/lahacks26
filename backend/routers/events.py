@@ -5,9 +5,12 @@ from bson import ObjectId
 from bson.errors import InvalidId
 from fastapi import APIRouter, HTTPException, Query
 
+import base64
+
 from database import events_collection
 from models import EventResponse
 from services.event_pipeline import pipeline
+from services.stub_frames import placeholder_jpeg_b64
 
 router = APIRouter(prefix="/events", tags=["events"])
 
@@ -74,7 +77,7 @@ async def get_event(event_id: str):
 @router.post("/test/trigger", response_model=EventResponse, status_code=201)
 async def trigger_test_event(camera_id: str, confidence: float = 0.9):
     """Dev-only: run the full event pipeline with a single stub frame."""
-    stub_frame = b"\xff\xd8\xff\xe0\x00\x10JFIF\x00"  # not a real JPEG, just bytes
+    stub_frame = base64.b64decode(placeholder_jpeg_b64())
     doc = await pipeline.run(
         camera_id=camera_id,
         frames=[stub_frame],
