@@ -1,0 +1,31 @@
+[Unit]
+Description=SentinelAI FastAPI backend
+After=network.target
+
+[Service]
+Type=simple
+User=sentinel
+Group=sentinel
+WorkingDirectory=/opt/sentinelai/backend
+EnvironmentFile=/opt/sentinelai/backend/.env
+ExecStart=/opt/sentinelai/backend/venv/bin/uvicorn main:app \
+    --host 127.0.0.1 \
+    --port 8000 \
+    --workers 1 \
+    --proxy-headers \
+    --forwarded-allow-ips=*
+Restart=always
+RestartSec=3
+KillSignal=SIGINT
+TimeoutStopSec=15
+StandardOutput=journal
+StandardError=journal
+
+# Mild hardening; relax if it gets in the way.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+
+[Install]
+WantedBy=multi-user.target
