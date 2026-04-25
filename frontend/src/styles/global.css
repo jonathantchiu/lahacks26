@@ -1,0 +1,247 @@
+:root {
+  /* Surface layers */
+  --bg-base: #07090E;
+  --bg-surface: #0D1117;
+  --bg-surface-raised: #131921;
+  --bg-surface-overlay: #1A2233;
+  --bg-surface-hover: #1E2A3A;
+
+  /* Text */
+  --text-primary: #E2E8F0;
+  --text-secondary: #94A3B8;
+  --text-muted: #64748B;
+  --text-dim: #475569;
+
+  /* Accent */
+  --accent: #22D3EE;
+  --accent-hover: #06B6D4;
+  --accent-dim: rgba(34, 211, 238, 0.12);
+  --accent-glow: rgba(34, 211, 238, 0.08);
+  --accent-strong-glow: 0 0 24px rgba(34, 211, 238, 0.15);
+
+  /* Secondary */
+  --secondary: #60A5FA;
+  --secondary-dim: rgba(96, 165, 250, 0.1);
+
+  /* Status */
+  --success: #34D399;
+  --success-dim: rgba(52, 211, 153, 0.1);
+  --warning: #FBBF24;
+  --warning-dim: rgba(251, 191, 36, 0.1);
+  --error: #FB7185;
+  --error-dim: rgba(251, 113, 133, 0.1);
+
+  /* Borders */
+  --border: rgba(255, 255, 255, 0.06);
+  --border-visible: rgba(255, 255, 255, 0.1);
+  --border-active: rgba(34, 211, 238, 0.3);
+
+  /* Radius */
+  --radius-xs: 3px;
+  --radius-sm: 5px;
+  --radius: 8px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-full: 9999px;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
+
+  /*
+   * TYPOGRAPHY SYSTEM
+   * Display: Barlow Semi Condensed — headings, brand, section titles
+   *   Always uppercase, letter-spacing 0.04em, weight 600-700
+   * Body: Barlow — everything else (nav, descriptions, paragraphs, labels)
+   *   Normal case, weight 400-500
+   * Mono: Geist Mono — data, timestamps, badges, status readouts
+   *   letter-spacing 0.03em, weight 400-500
+   *
+   * Type scale: 10 / 11 / 12 / 13 / 14 / 18 / 22
+   */
+  --font-display: 'Barlow Semi Condensed', 'Barlow', system-ui, sans-serif;
+  --font-body: 'Barlow', system-ui, sans-serif;
+  --font-mono: 'Geist Mono', 'Menlo', monospace;
+
+  /* Focus */
+  --focus-ring: 0 0 0 2px var(--bg-base), 0 0 0 4px var(--accent);
+}
+
+[data-theme="light"] {
+  --bg-base: #F1F5F9;
+  --bg-surface: #FFFFFF;
+  --bg-surface-raised: #F8FAFC;
+  --bg-surface-overlay: #E2E8F0;
+  --bg-surface-hover: #E2E8F0;
+
+  --text-primary: #0F172A;
+  --text-secondary: #334155;
+  --text-muted: #64748B;
+  --text-dim: #94A3B8;
+
+  --accent: #0891B2;
+  --accent-hover: #0E7490;
+  --accent-dim: rgba(8, 145, 178, 0.10);
+  --accent-glow: rgba(8, 145, 178, 0.06);
+  --accent-strong-glow: 0 0 24px rgba(8, 145, 178, 0.12);
+
+  --secondary: #3B82F6;
+  --secondary-dim: rgba(59, 130, 246, 0.08);
+
+  --success: #059669;
+  --success-dim: rgba(5, 150, 105, 0.08);
+  --warning: #D97706;
+  --warning-dim: rgba(217, 119, 6, 0.08);
+  --error: #E11D48;
+  --error-dim: rgba(225, 29, 72, 0.08);
+
+  --border: rgba(0, 0, 0, 0.08);
+  --border-visible: rgba(0, 0, 0, 0.12);
+  --border-active: rgba(8, 145, 178, 0.4);
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.12);
+
+  --focus-ring: 0 0 0 2px var(--bg-base), 0 0 0 4px var(--accent);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: var(--font-body);
+  background: var(--bg-base);
+  color: var(--text-primary);
+  line-height: 1.6;
+  font-size: 13px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  line-height: 1.2;
+  font-weight: 600;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+a:hover { color: var(--accent-hover); }
+
+:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+a:focus-visible, button:focus-visible, input:focus-visible,
+textarea:focus-visible, select:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  border-radius: var(--radius-sm);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-visible); border-radius: var(--radius-full); }
+::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
+
+[data-theme="light"] body::before { opacity: 0; }
+
+/* ---- Layout ---- */
+.app-layout {
+  display: flex;
+  min-height: 100dvh;
+  position: relative;
+  z-index: 1;
+}
+
+.app-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  margin-left: 220px;
+  min-height: 100dvh;
+}
+@media (max-width: 1024px) {
+  .app-body { margin-left: 0; }
+}
+
+.main-content {
+  flex: 1;
+  padding: 0 32px 28px;
+}
+@media (max-width: 1024px) {
+  .main-content { padding: 0 16px 20px; }
+}
+
+/* ---- Utility classes ---- */
+
+/* Mono label — for section headers, metadata keys */
+.label-caps {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+/* Mono data — for values, timestamps, readouts */
+.mono-data {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.03em;
+  color: var(--text-muted);
+}
+
+/* ---- Overlay ---- */
+.sidebar-overlay { display: none; }
+@media (max-width: 1024px) {
+  .sidebar-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    z-index: 99;
+  }
+}
+
+/* ---- Placeholder ---- */
+.placeholder-page {
+  padding: 100px 0;
+  text-align: center;
+}
+.placeholder-page h1 {
+  font-size: 18px;
+  margin-bottom: 6px;
+}
+.placeholder-page p {
+  font-family: var(--font-body);
+  color: var(--text-dim);
+  font-size: 13px;
+  text-transform: none;
+}

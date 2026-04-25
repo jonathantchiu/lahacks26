@@ -28,9 +28,9 @@ from services.connection_manager import manager
 
 logger = logging.getLogger(__name__)
 
-FRAME_INTERVAL_S = 1.0
+FRAME_INTERVAL_S = 0.5
 BUFFER_SECONDS = 60
-JPEG_QUALITY = 70
+JPEG_QUALITY = 60
 RECONNECT_BACKOFF_S = [1.0, 2.0, 5.0, 10.0]
 
 

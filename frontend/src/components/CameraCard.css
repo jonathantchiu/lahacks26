@@ -1,0 +1,85 @@
+.camera-card {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  transition: transform 0.2s ease, border-color 0.2s, box-shadow 0.2s;
+  cursor: pointer;
+}
+.camera-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--border-active);
+  box-shadow: var(--accent-strong-glow);
+}
+
+.camera-feed {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  background: var(--bg-base);
+  overflow: hidden;
+}
+.camera-feed::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px);
+  pointer-events: none;
+  z-index: 1;
+}
+.camera-feed img, .camera-feed-video { width: 100%; height: 100%; object-fit: cover; }
+
+.camera-placeholder {
+  width: 100%; height: 100%;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 6px; color: var(--text-dim);
+}
+.placeholder-text {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.03em;
+}
+
+.feed-overlay { position: absolute; top: 6px; left: 6px; z-index: 2; }
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
+  border-radius: var(--radius-xs);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  backdrop-filter: blur(8px);
+  background: rgba(0, 0, 0, 0.5);
+}
+.status-badge.active { color: var(--success); }
+.status-badge.inactive { color: var(--error); }
+
+.status-dot { width: 4px; height: 4px; border-radius: 50%; background: currentColor; }
+.status-badge.active .status-dot { box-shadow: 0 0 6px currentColor; animation: pulse 2s ease-in-out infinite; }
+
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+.camera-info { padding: 10px 12px; }
+
+.camera-name {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-primary);
+  margin-bottom: 1px;
+}
+
+.camera-context {
+  font-family: var(--font-body);
+  font-size: 11px;
+  color: var(--text-dim);
+  line-height: 1.4;
+}

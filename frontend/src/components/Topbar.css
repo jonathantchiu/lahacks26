@@ -1,0 +1,88 @@
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px;
+  height: 44px;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.topbar-menu-btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color 0.12s;
+}
+
+.topbar-menu-btn:hover {
+  color: var(--text-primary);
+}
+
+@media (max-width: 1024px) {
+  .topbar {
+    padding: 0 16px;
+  }
+
+  .topbar-menu-btn {
+    display: flex;
+  }
+}
+
+.topbar-nav {
+  display: flex;
+  gap: 0;
+}
+
+.topbar-nav a {
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-dim);
+  padding: 12px 14px;
+  border-bottom: 2px solid transparent;
+  transition: color 0.12s;
+}
+
+.topbar-nav a:hover {
+  color: var(--text-secondary);
+}
+
+.topbar-nav a.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+.topbar-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.topbar-icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-sm);
+  border: none;
+  background: transparent;
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: color 0.12s, background 0.12s;
+}
+
+.topbar-icon-btn:hover {
+  color: var(--text-secondary);
+  background: var(--bg-surface-hover);
+}

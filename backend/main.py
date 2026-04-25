@@ -1,5 +1,6 @@
 import logging
 from contextlib import asynccontextmanager
+from typing import Optional
 
 from dotenv import load_dotenv
 from fastapi import FastAPI
@@ -10,12 +11,28 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name
 
 from database import cameras_collection
 from routers import cameras, events, websocket
+from services.event_pipeline import pipeline
 from services.stream_manager import stream_manager
+
+
+async def _init_solana():
+    try:
+        from services.solana_logger import SolanaLogger
+        logger = SolanaLogger()
+        await logger.fund_wallet()
+
+        async def solana_adapter(event_hash: str, camera_id: str, ts: int) -> Optional[str]:
+            return await logger.log_event(camera_id, float(ts), event_hash)
+
+        pipeline.set_solana_logger(solana_adapter)
+        logging.info("Solana logger wired — wallet %s", logger.payer.pubkey())
+    except Exception:
+        logging.exception("Solana logger failed to init — events will have no on-chain proof")
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Resume streams for cameras already in the DB.
+    await _init_solana()
     async for doc in cameras_collection.find({"status": "active"}):
         try:
             await stream_manager.start_camera(str(doc["_id"]), doc["stream_url"])
