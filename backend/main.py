@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 load_dotenv()
 
-from routers import cameras, websocket
+from routers import cameras, events, websocket
 
 app = FastAPI(title="SentinelAI", version="0.1.0")
 
@@ -17,6 +17,7 @@ app.add_middleware(
 )
 
 app.include_router(cameras.router)
+app.include_router(events.router)
 app.include_router(websocket.router)
 
 
