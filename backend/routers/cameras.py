@@ -5,6 +5,7 @@ from fastapi import APIRouter, HTTPException
 
 from database import cameras_collection
 from models import CameraCreate, CameraResponse, CameraUpdate
+from services.stream_manager import stream_manager
 
 router = APIRouter(prefix="/cameras", tags=["cameras"])
 
@@ -37,6 +38,7 @@ async def create_camera(camera: CameraCreate):
     }
     result = await cameras_collection.insert_one(doc)
     doc["_id"] = result.inserted_id
+    await stream_manager.start_camera(str(result.inserted_id), camera.stream_url)
     return _to_response(doc)
 
 
@@ -65,6 +67,8 @@ async def update_camera(camera_id: str, update: CameraUpdate):
     )
     if not doc:
         raise HTTPException(404, "Camera not found")
+    if "stream_url" in update_data:
+        await stream_manager.start_camera(camera_id, doc["stream_url"])
     return _to_response(doc)
 
 
@@ -73,4 +77,5 @@ async def delete_camera(camera_id: str):
     result = await cameras_collection.delete_one({"_id": _parse_id(camera_id)})
     if result.deleted_count == 0:
         raise HTTPException(404, "Camera not found")
+    await stream_manager.stop_camera(camera_id)
     return {"deleted": True}

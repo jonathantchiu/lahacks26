@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect
 
 from services.connection_manager import manager
+from services.stream_manager import stream_manager
 from services.stub_frames import now_ts, placeholder_jpeg_b64
 
 router = APIRouter()
@@ -15,17 +16,19 @@ STUB_FRAME_INTERVAL_S = 1.0
 async def stream_websocket(websocket: WebSocket, camera_id: str):
     """Live frame feed for a single camera.
 
-    Currently emits a stub placeholder JPEG once per second.  When
-    Sartaj's stream_manager is wired in, replace the loop body with a
-    queue read.
+    If a real stream is active in stream_manager, frames flow through
+    ConnectionManager.send_frame and we just hold the socket open.
+    Otherwise (no camera registered, or stream still reconnecting),
+    we emit a stub placeholder so the frontend can render *something*.
     """
     await manager.subscribe_stream(camera_id, websocket)
     try:
-        frame_n = 0
         while True:
-            await manager.send_frame(camera_id, placeholder_jpeg_b64(), now_ts())
-            frame_n += 1
-            await asyncio.sleep(STUB_FRAME_INTERVAL_S)
+            if camera_id in stream_manager.streams:
+                await websocket.receive_text()
+            else:
+                await manager.send_frame(camera_id, placeholder_jpeg_b64(), now_ts())
+                await asyncio.sleep(STUB_FRAME_INTERVAL_S)
     except WebSocketDisconnect:
         pass
     except Exception:
