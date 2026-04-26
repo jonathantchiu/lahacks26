@@ -86,12 +86,11 @@ class EventPipeline:
             label="narration",
         )
 
+        audio_url = await upload_audio(audio_bytes) if audio_bytes else None
+        logger.info("pipeline audio_url=%s (bytes=%d)", audio_url, len(audio_bytes) if audio_bytes else 0)
+
         sampled_frames = self._sample_frames(frames, max_frames=8)
-        frame_urls_task = upload_frames(sampled_frames) if sampled_frames else asyncio.sleep(0, result=[])
-        audio_url_task = (
-            upload_audio(audio_bytes) if audio_bytes else asyncio.sleep(0, result=None)
-        )
-        frame_urls, audio_url = await asyncio.gather(frame_urls_task, audio_url_task)
+        frame_urls = await upload_frames(sampled_frames) if sampled_frames else []
         thumbnail = frame_urls[0] if frame_urls else None
 
         doc = {
