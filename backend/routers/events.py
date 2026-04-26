@@ -7,12 +7,28 @@ from fastapi import APIRouter, HTTPException, Query
 
 import base64
 
+from fastapi.responses import Response
+from pydantic import BaseModel
+
 from database import events_collection
 from models import EventResponse
 from services.event_pipeline import pipeline
 from services.stub_frames import placeholder_jpeg_b64
 
 router = APIRouter(prefix="/events", tags=["events"])
+
+_narration_service = None
+
+def _get_narration():
+    global _narration_service
+    if _narration_service is None:
+        from services.narration import NarrationService
+        _narration_service = NarrationService()
+    return _narration_service
+
+
+class NarrateRequest(BaseModel):
+    text: str
 
 
 def _to_response(doc) -> EventResponse:
@@ -83,6 +99,16 @@ async def delete_event(event_id: str):
     result = await events_collection.delete_one({"_id": oid})
     if result.deleted_count == 0:
         raise HTTPException(404, "Event not found")
+
+
+@router.post("/narrate")
+async def narrate_text(body: NarrateRequest):
+    """Synthesize narration audio from text and return mp3 bytes."""
+    svc = _get_narration()
+    audio = await svc.narrate(body.text)
+    if not audio:
+        raise HTTPException(503, "Narration service unavailable")
+    return Response(content=audio, media_type="audio/mpeg")
 
 
 @router.post("/test/trigger", response_model=EventResponse, status_code=201)

@@ -5,6 +5,7 @@ import CameraCard from '../components/CameraCard';
 import ConnectCard from '../components/ConnectCard';
 import EventToast from '../components/EventToast';
 import { useDemo } from '../lib/useDemo';
+import { playNarration } from '../lib/playNarration';
 import { DEMO_POOL_CAMERA, DEMO_POOL_TOAST } from '../lib/mockData';
 import type { ToastEvent, Camera } from '../types';
 import './Dashboard.css';
@@ -19,27 +20,17 @@ export default function Dashboard() {
 
   const [frames, setFrames] = useState<Record<string, string>>({});
   const [muted, setMuted] = useState(true);
-  const audioQueue = useRef<string[]>([]);
+  const pendingEvent = useRef<{ audio_url?: string; description?: string } | null>(null);
 
   const cameras = demoActive ? [DEMO_POOL_CAMERA, ...liveCameras] : liveCameras;
   const displayFrames = frames;
   const displayToasts = demoActive ? [DEMO_POOL_TOAST, ...toasts] : toasts;
 
-  const playAudio = useCallback((url: string) => {
-    const audio = new Audio(url);
-    audio.play().catch(() => {});
-  }, []);
-
   const toggleMute = useCallback(() => {
     setMuted((prev) => {
-      if (prev) {
-        // Unmuting — play any queued audio
-        const pending = audioQueue.current.pop();
-        if (pending) {
-          const audio = new Audio(pending);
-          audio.play().catch(() => {});
-        }
-        audioQueue.current = [];
+      if (prev && pendingEvent.current) {
+        playNarration(pendingEvent.current.audio_url, pendingEvent.current.description || '');
+        pendingEvent.current = null;
       }
       return !prev;
     });
@@ -83,12 +74,10 @@ export default function Dashboard() {
         const event = data.data ?? data.event;
         setToasts((prev) => [event, ...prev].slice(0, 5));
 
-        if (event.audio_url) {
-          if (!muted) {
-            playAudio(event.audio_url);
-          } else {
-            audioQueue.current = [event.audio_url];
-          }
+        if (!muted) {
+          playNarration(event.audio_url, event.description || '');
+        } else {
+          pendingEvent.current = { audio_url: event.audio_url, description: event.description };
         }
 
         setTimeout(() => {
@@ -98,7 +87,7 @@ export default function Dashboard() {
     };
 
     return () => ws.close();
-  }, [muted, playAudio]);
+  }, [muted]);
 
   return (
     <div className="dashboard">

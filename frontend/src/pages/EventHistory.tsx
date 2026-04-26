@@ -3,6 +3,7 @@ import { Play, ExternalLink, ChevronDown } from 'lucide-react';
 import type { EventRecord, Camera } from '../types';
 import CldImage from '../components/CldImage';
 import { useDemo } from '../lib/useDemo';
+import { playNarration } from '../lib/playNarration';
 import { DEMO_POOL_CAMERA, DEMO_POOL_EVENT } from '../lib/mockData';
 import './EventHistory.css';
 
@@ -131,7 +132,7 @@ export default function EventHistory() {
                         className="action-btn play-btn"
                         onClick={(e) => {
                           e.stopPropagation();
-                          new Audio(event.audio_url).play();
+                          playNarration(event.audio_url, event.description);
                         }}
                         aria-label={`Play narration for ${event.camera_name} event`}
                       >
