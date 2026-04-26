@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
+import { Volume2, VolumeX } from 'lucide-react';
 import CameraCard from '../components/CameraCard';
 import ConnectCard from '../components/ConnectCard';
 import EventToast from '../components/EventToast';
@@ -17,11 +18,30 @@ export default function Dashboard() {
   const location = useLocation();
 
   const audioRef = useRef<HTMLAudioElement>(null);
+  const [audioUnlocked, setAudioUnlocked] = useState(false);
   const [frames, setFrames] = useState<Record<string, string>>({});
+  const pendingAudioUrl = useRef<string | null>(null);
 
   const cameras = demoActive ? [DEMO_POOL_CAMERA, ...liveCameras] : liveCameras;
   const displayFrames = frames;
   const displayToasts = demoActive ? [DEMO_POOL_TOAST, ...toasts] : toasts;
+
+  const unlockAudio = useCallback(() => {
+    if (audioRef.current && !audioUnlocked) {
+      audioRef.current.muted = false;
+      audioRef.current.play().then(() => {
+        audioRef.current!.pause();
+        setAudioUnlocked(true);
+        if (pendingAudioUrl.current) {
+          audioRef.current!.src = pendingAudioUrl.current;
+          audioRef.current!.play().catch(() => {});
+          pendingAudioUrl.current = null;
+        }
+      }).catch(() => {
+        setAudioUnlocked(true);
+      });
+    }
+  }, [audioUnlocked]);
 
   const fetchCameras = useCallback(() => {
     fetch(`${API_BASE}/cameras`)
@@ -62,8 +82,12 @@ export default function Dashboard() {
         setToasts((prev) => [event, ...prev].slice(0, 5));
 
         if (audioRef.current && event.audio_url) {
-          audioRef.current.src = event.audio_url;
-          audioRef.current.play();
+          if (audioUnlocked) {
+            audioRef.current.src = event.audio_url;
+            audioRef.current.play().catch(() => {});
+          } else {
+            pendingAudioUrl.current = event.audio_url;
+          }
         }
 
         setTimeout(() => {
@@ -73,10 +97,16 @@ export default function Dashboard() {
     };
 
     return () => ws.close();
-  }, []);
+  }, [audioUnlocked]);
 
   return (
     <div className="dashboard">
+      {!audioUnlocked && (
+        <button className="unmute-banner" onClick={unlockAudio}>
+          <VolumeX size={16} />
+          Click to enable alert narration
+        </button>
+      )}
       <div className="camera-grid">
         {cameras.map((cam) => (
           <CameraCard
