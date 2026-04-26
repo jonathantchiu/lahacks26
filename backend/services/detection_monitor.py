@@ -88,6 +88,7 @@ class DetectionMonitor:
 
         await self._refresh_camera_settings(camera_id, state)
         result = self.classifier.classify(frame)
+        logger.info("cam=%s notable=%.3f threshold=%.2f people=%d", camera_id[:8], result.notable_confidence, state.threshold, len(result.person_boxes))
         if result.notable_confidence < state.threshold:
             return
 
