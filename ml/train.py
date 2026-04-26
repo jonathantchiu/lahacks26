@@ -1,6 +1,7 @@
 import argparse
 import json
 import random
+import urllib.error
 from pathlib import Path
 
 import numpy as np
@@ -72,7 +73,11 @@ def build_loaders(
 
 
 def build_model(device: torch.device) -> nn.Module:
-    model = models.resnet18(weights=models.ResNet18_Weights.IMAGENET1K_V1)
+    try:
+        model = models.resnet18(weights=models.ResNet18_Weights.IMAGENET1K_V1)
+    except (urllib.error.URLError, RuntimeError):
+        print("Pretrained weight download failed; falling back to random init.")
+        model = models.resnet18(weights=None)
     for param in model.parameters():
         param.requires_grad = False
     for param in model.layer4.parameters():

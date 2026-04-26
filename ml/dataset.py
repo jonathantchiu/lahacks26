@@ -13,6 +13,10 @@ class SecurityFrameDataset(Dataset):
     def __init__(self, frames_dir: str, labels_path: str, augment: bool = True) -> None:
         self.frames_dir = Path(frames_dir)
         labels_file = Path(labels_path)
+        if not labels_file.exists():
+            raise FileNotFoundError(
+                f"{labels_file} not found. Generate it with: python ml/label_frames.py"
+            )
         labels = json.loads(labels_file.read_text())
 
         self.samples: list[tuple[Path, int]] = []
