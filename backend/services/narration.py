@@ -32,9 +32,10 @@ class NarrationService:
             return None
 
     def _synthesize_sync(self, text: str) -> bytes | None:
+        logger.info("ElevenLabs synthesizing %d chars with voice=%s", len(text), self.voice_id)
         audio_stream = self._client.text_to_speech.convert(
             voice_id=self.voice_id,
-            model_id="eleven_turbo_v2_5",
+            model_id="eleven_multilingual_v2",
             output_format="mp3_44100_128",
             text=text,
         )
@@ -42,4 +43,6 @@ class NarrationService:
         for chunk in audio_stream:
             if isinstance(chunk, bytes):
                 chunks.append(chunk)
-        return b"".join(chunks) if chunks else None
+        result = b"".join(chunks) if chunks else None
+        logger.info("ElevenLabs returned %d bytes", len(result) if result else 0)
+        return result
