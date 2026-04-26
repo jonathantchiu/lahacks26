@@ -60,9 +60,9 @@
    *
    * Type scale: 10 / 11 / 12 / 13 / 14 / 18 / 22
    */
-  --font-display: 'Barlow Semi Condensed', 'Barlow', system-ui, sans-serif;
-  --font-body: 'Barlow', system-ui, sans-serif;
-  --font-mono: 'Geist Mono', 'Menlo', monospace;
+  --font-display: 'DM Sans', system-ui, sans-serif;
+  --font-body: 'IBM Plex Sans', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', 'Menlo', monospace;
 
   /* Focus */
   --focus-ring: 0 0 0 2px var(--bg-base), 0 0 0 4px var(--accent);
