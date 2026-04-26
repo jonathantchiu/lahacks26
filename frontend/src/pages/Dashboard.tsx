@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
-import { VolumeX } from 'lucide-react';
+import { Volume2, VolumeX } from 'lucide-react';
 import CameraCard from '../components/CameraCard';
 import ConnectCard from '../components/ConnectCard';
 import EventToast from '../components/EventToast';
@@ -17,31 +17,33 @@ export default function Dashboard() {
   const [toasts, setToasts] = useState<ToastEvent[]>([]);
   const location = useLocation();
 
-  const audioRef = useRef<HTMLAudioElement>(null);
-  const [audioUnlocked, setAudioUnlocked] = useState(false);
   const [frames, setFrames] = useState<Record<string, string>>({});
-  const pendingAudioUrl = useRef<string | null>(null);
+  const [muted, setMuted] = useState(true);
+  const audioQueue = useRef<string[]>([]);
 
   const cameras = demoActive ? [DEMO_POOL_CAMERA, ...liveCameras] : liveCameras;
   const displayFrames = frames;
   const displayToasts = demoActive ? [DEMO_POOL_TOAST, ...toasts] : toasts;
 
-  const unlockAudio = useCallback(() => {
-    if (audioRef.current && !audioUnlocked) {
-      audioRef.current.muted = false;
-      audioRef.current.play().then(() => {
-        audioRef.current!.pause();
-        setAudioUnlocked(true);
-        if (pendingAudioUrl.current) {
-          audioRef.current!.src = pendingAudioUrl.current;
-          audioRef.current!.play().catch(() => {});
-          pendingAudioUrl.current = null;
+  const playAudio = useCallback((url: string) => {
+    const audio = new Audio(url);
+    audio.play().catch(() => {});
+  }, []);
+
+  const toggleMute = useCallback(() => {
+    setMuted((prev) => {
+      if (prev) {
+        // Unmuting — play any queued audio
+        const pending = audioQueue.current.pop();
+        if (pending) {
+          const audio = new Audio(pending);
+          audio.play().catch(() => {});
         }
-      }).catch(() => {
-        setAudioUnlocked(true);
-      });
-    }
-  }, [audioUnlocked]);
+        audioQueue.current = [];
+      }
+      return !prev;
+    });
+  }, []);
 
   const fetchCameras = useCallback(() => {
     fetch(`${API_BASE}/cameras`)
@@ -81,12 +83,11 @@ export default function Dashboard() {
         const event = data.data ?? data.event;
         setToasts((prev) => [event, ...prev].slice(0, 5));
 
-        if (audioRef.current && event.audio_url) {
-          if (audioUnlocked) {
-            audioRef.current.src = event.audio_url;
-            audioRef.current.play().catch(() => {});
+        if (event.audio_url) {
+          if (!muted) {
+            playAudio(event.audio_url);
           } else {
-            pendingAudioUrl.current = event.audio_url;
+            audioQueue.current = [event.audio_url];
           }
         }
 
@@ -97,16 +98,14 @@ export default function Dashboard() {
     };
 
     return () => ws.close();
-  }, [audioUnlocked]);
+  }, [muted, playAudio]);
 
   return (
     <div className="dashboard">
-      {!audioUnlocked && (
-        <button className="unmute-banner" onClick={unlockAudio}>
-          <VolumeX size={16} />
-          Click to enable alert narration
-        </button>
-      )}
+      <button className="unmute-banner" onClick={toggleMute}>
+        {muted ? <VolumeX size={16} /> : <Volume2 size={16} />}
+        {muted ? 'Click to enable alert narration' : 'Narration enabled — click to mute'}
+      </button>
       <div className="camera-grid">
         {cameras.map((cam) => (
           <CameraCard
@@ -123,7 +122,6 @@ export default function Dashboard() {
       </div>
 
       <EventToast events={displayToasts} />
-      <audio ref={audioRef} />
     </div>
   );
 }
