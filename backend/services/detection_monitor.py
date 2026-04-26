@@ -2,6 +2,7 @@ import asyncio
 import logging
 import time
 from dataclasses import dataclass
+from typing import Optional
 
 import cv2
 import numpy as np
@@ -22,6 +23,7 @@ class _CameraState:
     thresholds_cache_ts: float = 0.0
     threshold: float = 0.7
     context: str = ""
+    demo_alert_after_video_sec: Optional[float] = None
 
 
 class DetectionMonitor:
@@ -87,8 +89,20 @@ class DetectionMonitor:
             return
 
         await self._refresh_camera_settings(camera_id, state)
+        if state.demo_alert_after_video_sec is not None:
+            pos_msec = stream_manager.get_latest_video_pos_msec(camera_id)
+            if pos_msec is None:
+                return
+            if pos_msec < state.demo_alert_after_video_sec * 1000.0:
+                return
         result = self.classifier.classify(frame)
-        logger.info("cam=%s notable=%.3f threshold=%.2f people=%d", camera_id[:8], result.notable_confidence, state.threshold, len(result.person_boxes))
+        logger.debug(
+            "cam=%s notable=%.3f threshold=%.2f people=%d",
+            camera_id[:8],
+            result.notable_confidence,
+            state.threshold,
+            len(result.person_boxes),
+        )
         if result.notable_confidence < state.threshold:
             return
 
@@ -117,6 +131,10 @@ class DetectionMonitor:
         if doc:
             state.threshold = float(doc.get("threshold", 0.7))
             state.context = str(doc.get("context", ""))
+            raw_demo = doc.get("demo_alert_after_video_sec")
+            state.demo_alert_after_video_sec = (
+                float(raw_demo) if raw_demo is not None else None
+            )
         state.thresholds_cache_ts = now
 
     @staticmethod

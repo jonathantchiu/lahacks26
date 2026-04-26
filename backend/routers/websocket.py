@@ -27,7 +27,12 @@ async def stream_websocket(websocket: WebSocket, camera_id: str):
             if camera_id in stream_manager.streams:
                 await websocket.receive_text()
             else:
-                await manager.send_frame(camera_id, placeholder_jpeg_b64(), now_ts())
+                await manager.send_frame(
+                    camera_id,
+                    placeholder_jpeg_b64(),
+                    now_ts(),
+                    caption="placeholder frame (no active stream)",
+                )
                 await asyncio.sleep(STUB_FRAME_INTERVAL_S)
     except WebSocketDisconnect:
         pass

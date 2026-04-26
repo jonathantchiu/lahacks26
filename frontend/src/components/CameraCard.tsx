@@ -10,13 +10,14 @@ interface CameraCardProps {
   status: string;
   streamUrl: string;
   frame: string | null;
+  caption?: string | null;
 }
 
 function isHls(url: string): boolean {
   return url.includes('.m3u8');
 }
 
-export default function CameraCard({ id, name, context, status, streamUrl, frame }: CameraCardProps) {
+export default function CameraCard({ id, name, context, status, streamUrl, frame, caption }: CameraCardProps) {
   return (
     <Link to={`/stream/${id}`} className="camera-card">
       <div className="camera-feed">
@@ -40,6 +41,7 @@ export default function CameraCard({ id, name, context, status, streamUrl, frame
       <div className="camera-info">
         <h3 className="camera-name">{name}</h3>
         <p className="camera-context">{context}</p>
+        {caption ? <p className="camera-caption mono-data">{caption}</p> : null}
       </div>
     </Link>
   );

@@ -17,6 +17,7 @@ export default function StreamView() {
   const [liveCamera, setLiveCamera] = useState<Camera | undefined>(undefined);
   const [liveEvents, setLiveEvents] = useState<EventRecord[]>([]);
   const [liveFrame, setLiveFrame] = useState<string | null>(null);
+  const [liveCaption, setLiveCaption] = useState<string | null>(null);
 
   useEffect(() => {
     if (demoActive || !id) return;
@@ -40,6 +41,7 @@ export default function StreamView() {
     ws.onmessage = (msg) => {
       const data = JSON.parse(msg.data);
       setLiveFrame(`data:image/jpeg;base64,${data.jpeg_b64 ?? data.frame}`);
+      setLiveCaption(typeof data.caption === 'string' ? data.caption : null);
     };
     return () => ws.close();
   }, [id, demoActive]);
@@ -116,6 +118,11 @@ export default function StreamView() {
           <div className="stream-context">
             <span className="label-caps">Monitoring Context</span>
             <p>{camera.context}</p>
+            {!demoActive && liveCaption ? (
+              <p className="mono-data" style={{ marginTop: 8, opacity: 0.85 }}>
+                {liveCaption}
+              </p>
+            ) : null}
           </div>
         </div>
 

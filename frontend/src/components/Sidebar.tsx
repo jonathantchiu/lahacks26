@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
-import { Monitor, ScrollText, HelpCircle, LogOut, Sun, Moon } from 'lucide-react';
+import { Monitor, ScrollText, HelpCircle, LogOut, Sun, Moon, FlaskConical } from 'lucide-react';
 import './Sidebar.css';
 
 interface SidebarProps {
@@ -41,6 +41,10 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
           <NavLink to="/events" className="nav-item" onClick={onClose}>
             <ScrollText size={16} />
             <span>System Logs</span>
+          </NavLink>
+          <NavLink to="/demo" className="nav-item" onClick={onClose}>
+            <FlaskConical size={16} />
+            <span>Demo Lab</span>
           </NavLink>
         </div>
 

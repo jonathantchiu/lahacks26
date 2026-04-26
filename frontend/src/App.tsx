@@ -10,6 +10,7 @@ import Dashboard from './pages/Dashboard';
 import CameraSetup from './pages/CameraSetup';
 import EventHistory from './pages/EventHistory';
 import StreamView from './pages/StreamView';
+import DemoLab from './pages/DemoLab';
 
 function AppShell() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -28,6 +29,7 @@ function AppShell() {
             <Route path="/cameras/new" element={<CameraSetup />} />
             <Route path="/stream/:id" element={<StreamView />} />
             <Route path="/events" element={<EventHistory />} />
+            <Route path="/demo" element={<DemoLab />} />
           </Routes>
         </main>
         <Footer />

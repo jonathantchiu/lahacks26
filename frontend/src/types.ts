@@ -13,6 +13,8 @@ export interface Camera {
   context: string;
   status: string;
   threshold: number;
+  /** Seconds into file-based media before alerts may fire (demo / scripted clips). */
+  demo_alert_after_video_sec?: number | null;
 }
 
 export interface EventRecord {

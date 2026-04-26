@@ -25,6 +25,7 @@ import httpx
 import numpy as np
 
 from services.connection_manager import manager
+from services.stream_overlay import stream_overlay
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +40,7 @@ class _Stream:
     camera_id: str
     url: str
     task: Optional[asyncio.Task] = None
-    buffer: deque[tuple[float, bytes]] = field(
+    buffer: deque[tuple[float, bytes, Optional[float]]] = field(
         default_factory=lambda: deque(maxlen=BUFFER_SECONDS)
     )
 
@@ -54,6 +55,7 @@ def _pick_transport(url: str) -> str:
 class StreamManager:
     def __init__(self) -> None:
         self.streams: dict[str, _Stream] = {}
+        self._overlay_ticks: dict[str, int] = {}
 
     async def start_camera(self, camera_id: str, url: str) -> None:
         if camera_id in self.streams:
@@ -92,6 +94,12 @@ class StreamManager:
             return stream.buffer[-1][1]
         return None
 
+    def get_latest_video_pos_msec(self, camera_id: str) -> Optional[float]:
+        stream = self.streams.get(camera_id)
+        if not stream or not stream.buffer:
+            return None
+        return stream.buffer[-1][2]
+
     def get_buffer_window(
         self, camera_id: str, before_s: int = 10, after_s: int = 0
     ) -> list[bytes]:
@@ -101,13 +109,28 @@ class StreamManager:
         now = time.time()
         lo = now - before_s
         hi = now + after_s
-        return [jpeg for ts, jpeg in stream.buffer if lo <= ts <= hi]
+        return [jpeg for ts, jpeg, _pos in stream.buffer if lo <= ts <= hi]
 
-    async def _publish(self, stream: _Stream, jpeg: bytes) -> None:
+    async def _publish(
+        self, stream: _Stream, frame_bgr: np.ndarray, video_pos_msec: Optional[float] = None
+    ) -> None:
         ts = time.time()
-        stream.buffer.append((ts, jpeg))
+        tick = self._overlay_ticks.get(stream.camera_id, 0) + 1
+        self._overlay_ticks[stream.camera_id] = tick
+
+        overlay = await asyncio.to_thread(
+            stream_overlay.annotate_bgr, frame_bgr, frame_index=tick
+        )
+        jpeg = overlay.jpeg
+        stream.buffer.append((ts, jpeg, video_pos_msec))
         b64 = base64.b64encode(jpeg).decode("ascii")
-        await manager.send_frame(stream.camera_id, b64, ts)
+        await manager.send_frame(
+            stream.camera_id,
+            b64,
+            ts,
+            caption=overlay.caption,
+            boxes_xyxy=overlay.boxes_xyxy,
+        )
 
     # cv2 transport -------------------------------------------------
 
@@ -130,10 +153,10 @@ class StreamManager:
             attempt = 0
             try:
                 while True:
-                    jpeg = await asyncio.to_thread(self._grab_jpeg_cv2, cap)
-                    if jpeg is None:
+                    frame, pos_msec = await asyncio.to_thread(self._grab_frame_cv2, cap)
+                    if frame is None:
                         break
-                    await self._publish(stream, jpeg)
+                    await self._publish(stream, frame, video_pos_msec=pos_msec)
                     await asyncio.sleep(FRAME_INTERVAL_S)
             except asyncio.CancelledError:
                 cap.release()
@@ -158,7 +181,7 @@ class StreamManager:
             return None
 
     @staticmethod
-    def _grab_jpeg_cv2(cap) -> Optional[bytes]:
+    def _grab_frame_cv2(cap) -> tuple[Optional[np.ndarray], Optional[float]]:
         for _ in range(5):
             if not cap.grab():
                 break
@@ -166,11 +189,13 @@ class StreamManager:
         if not ok or frame is None:
             ok, frame = cap.read()
         if not ok or frame is None or not isinstance(frame, np.ndarray):
-            return None
-        ok, buf = cv2.imencode(
-            ".jpg", frame, [cv2.IMWRITE_JPEG_QUALITY, JPEG_QUALITY]
-        )
-        return buf.tobytes() if ok else None
+            return None, None
+        raw = cap.get(cv2.CAP_PROP_POS_MSEC)
+        if raw is None or float(raw) < 0.0:
+            pos_msec = None
+        else:
+            pos_msec = float(raw)
+        return frame, pos_msec
 
     # http_jpeg transport -------------------------------------------
 
@@ -182,7 +207,12 @@ class StreamManager:
                     r = await client.get(stream.url)
                     if r.status_code != 200 or not r.content:
                         raise RuntimeError(f"status={r.status_code}")
-                    await self._publish(stream, r.content)
+                    frame = cv2.imdecode(
+                        np.frombuffer(r.content, dtype=np.uint8), cv2.IMREAD_COLOR
+                    )
+                    if frame is None:
+                        raise RuntimeError("jpeg decode failed")
+                    await self._publish(stream, frame, video_pos_msec=None)
                     attempt = 0
                     await asyncio.sleep(FRAME_INTERVAL_S)
                 except asyncio.CancelledError:

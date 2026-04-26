@@ -39,12 +39,27 @@ class ConnectionManager:
             if ws in self.event_subscribers:
                 self.event_subscribers.remove(ws)
 
-    async def send_frame(self, camera_id: str, jpeg_b64: str, ts: float) -> None:
+    async def send_frame(
+        self,
+        camera_id: str,
+        jpeg_b64: str,
+        ts: float,
+        *,
+        caption: str | None = None,
+        boxes_xyxy: list[list[float]] | None = None,
+    ) -> None:
         subs = list(self.stream_subscribers.get(camera_id, []))
         if not subs:
             return
         payload = json.dumps(
-            {"type": "frame", "camera_id": camera_id, "jpeg_b64": jpeg_b64, "ts": ts}
+            {
+                "type": "frame",
+                "camera_id": camera_id,
+                "jpeg_b64": jpeg_b64,
+                "ts": ts,
+                "caption": caption,
+                "boxes_xyxy": boxes_xyxy or [],
+            }
         )
         await self._broadcast(subs, payload, channel=("stream", camera_id))
 

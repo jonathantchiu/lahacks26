@@ -83,3 +83,11 @@
   line-height: 1.4;
   font-weight: 400;
 }
+
+.camera-caption {
+  margin-top: 6px;
+  font-size: 10px;
+  color: var(--text-muted, var(--text-dim));
+  line-height: 1.35;
+  opacity: 0.95;
+}

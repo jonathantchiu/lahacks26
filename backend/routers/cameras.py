@@ -19,6 +19,7 @@ def _to_response(doc) -> CameraResponse:
         threshold=doc["threshold"],
         status=doc["status"],
         created_at=doc["created_at"],
+        demo_alert_after_video_sec=doc.get("demo_alert_after_video_sec"),
     )
 
 

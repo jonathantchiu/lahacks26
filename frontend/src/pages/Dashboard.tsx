@@ -17,10 +17,14 @@ export default function Dashboard() {
   const location = useLocation();
 
   const audioRef = useRef<HTMLAudioElement>(null);
-  const [frames, setFrames] = useState<Record<string, string>>({});
+  const [frames, setFrames] = useState<Record<string, { image: string; caption?: string }>>({});
 
   const cameras = demoActive ? MOCK_CAMERAS : liveCameras;
-  const displayFrames = demoActive ? MOCK_FRAMES : frames;
+  const displayFrames = demoActive
+    ? Object.fromEntries(
+        Object.entries(MOCK_FRAMES).map(([id, url]) => [id, { image: url }]),
+      )
+    : frames;
   const displayToasts = demoActive ? MOCK_TOASTS : toasts;
 
   const fetchCameras = useCallback(() => {
@@ -45,7 +49,10 @@ export default function Dashboard() {
         const data = JSON.parse(msg.data);
         setFrames((prev) => ({
           ...prev,
-          [data.camera_id]: `data:image/jpeg;base64,${data.jpeg_b64 ?? data.frame}`,
+          [data.camera_id]: {
+            image: `data:image/jpeg;base64,${data.jpeg_b64 ?? data.frame}`,
+            caption: typeof data.caption === 'string' ? data.caption : undefined,
+          },
         }));
       };
       connections.push(ws);
@@ -89,7 +96,8 @@ export default function Dashboard() {
             context={cam.context}
             status={cam.status}
             streamUrl={cam.stream_url}
-            frame={displayFrames[cam.id] || null}
+            frame={displayFrames[cam.id]?.image || null}
+            caption={displayFrames[cam.id]?.caption}
           />
         ))}
         <ConnectCard />

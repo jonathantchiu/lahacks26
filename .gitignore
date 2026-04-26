@@ -23,3 +23,6 @@ env/
 # IDE
 .vscode/
 .idea/
+
+# Large local demo video assets (keep out of git)
+data/*.mp4

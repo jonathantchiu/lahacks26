@@ -8,6 +8,8 @@ class CameraCreate(BaseModel):
     stream_url: str
     context: str
     threshold: float = 0.7
+    # For file-based streams only: only allow detection events after this offset (seconds) in the media timeline.
+    demo_alert_after_video_sec: Optional[float] = None
 
 
 class CameraUpdate(BaseModel):
@@ -16,6 +18,7 @@ class CameraUpdate(BaseModel):
     context: Optional[str] = None
     threshold: Optional[float] = None
     status: Optional[str] = None
+    demo_alert_after_video_sec: Optional[float] = None
 
 
 class CameraResponse(BaseModel):
@@ -26,6 +29,7 @@ class CameraResponse(BaseModel):
     threshold: float
     status: str
     created_at: datetime
+    demo_alert_after_video_sec: Optional[float] = None
 
 
 class EventResponse(BaseModel):
