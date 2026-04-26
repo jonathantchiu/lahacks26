@@ -1,0 +1,448 @@
+SentinelAI — Project Description
+==================================
+
+SentinelAI is a real-time AI-powered security surveillance platform that transforms
+passive camera feeds into actionable, narrated, and cryptographically verifiable
+security events. Built in 36 hours at LA Hacks 2026 by a team of 3 engineers.
+
+Live deployment: https://www.stalkertalker.club
+Backend API: https://api.stalkertalker.club
+
+
+PROBLEM
+-------
+There are over 1 billion surveillance cameras worldwide generating petabytes of
+video daily. Over 99% of this footage is never reviewed in real time. Human
+operators experience monitoring fatigue within minutes, not hours. When incidents
+do occur, security teams spend hours scrubbing footage to find the 10 seconds
+that matter. The dangerous moment is not "no camera" — it is "the camera saw it,
+but nobody noticed."
+
+
+SOLUTION
+--------
+SentinelAI is a full-stack system that watches live camera streams, detects
+notable activity using a two-stage ML pipeline, generates human-readable
+descriptions and audio narrations of events, and logs cryptographic proof of
+each event on the Solana blockchain. The entire pipeline runs in seconds —
+from raw camera frame to narrated alert with on-chain proof.
+
+
+ARCHITECTURE OVERVIEW
+---------------------
+
+  Camera Feeds (RTSP/HLS/MJPEG)
+       |
+  Vultr VPS (FastAPI + Uvicorn)
+       |
+  Stream Manager (OpenCV frame capture + circular buffer)
+       |
+  Detection Monitor (polls frames every 1 second)
+       |
+  +--- YOLOv8 Nano (person/object detection)
+  |
+  +--- ResNet-18 Custom (notable vs mundane binary classifier)
+       |
+       | (if notable confidence > threshold)
+       |
+  Event Pipeline (6-stage async pipeline)
+       |
+  +--- Gemma 4 26B MoE via Google Gemini API (visual reasoning)
+  +--- ElevenLabs (text-to-speech narration)
+  +--- Cloudinary (frame + audio CDN upload)
+  +--- MongoDB Atlas (event persistence)
+  +--- Solana Devnet (SHA-256 event hash logged via Memo program)
+  +--- WebSocket broadcast to all connected clients
+       |
+  React Frontend (real-time dashboard with live frames + event toasts)
+
+
+FRONTEND
+--------
+Technology: React 19, TypeScript, Vite, React Router
+
+The frontend is a single-page application deployed on Vercel with GoDaddy DNS
+routing. It communicates with the backend via REST API and WebSocket connections.
+
+Pages:
+  - Dashboard (/): Main view showing all camera feeds as cards with live frame
+    updates via WebSocket. Each camera card displays the camera name, context,
+    status, and the latest frame. Event toasts appear in the bottom-right corner
+    when new events are detected, with auto-playing audio narration.
+
+  - Stream View (/stream/:id): Full-screen view of a single camera with its
+    live WebSocket frame stream and a list of recent events for that camera.
+
+  - Camera Setup (/cameras/new): Form to add new cameras by providing a name,
+    stream URL (RTSP, HLS, or MJPEG), monitoring context (e.g., "Identify
+    16-wheel trucks"), and detection threshold (0.0-1.0).
+
+  - Event History (/events): Chronological list of all detected events with
+    expandable detail cards. Each event shows a thumbnail, camera name, timestamp,
+    confidence score, AI-generated description, and action buttons to play the
+    audio narration or view the Solana proof transaction. Expanded view shows
+    all captured frames and the verification context. Filterable by camera.
+
+Components:
+  - Sidebar: Fixed left navigation with links to Dashboard and System Logs,
+    theme toggle (dark/light mode persisted to localStorage), and branding.
+    Responsive — hidden on screens < 1024px with a hamburger menu button in
+    the StatusBar to open it.
+
+  - StatusBar: Top bar showing camera count (online/total), events per hour,
+    inference latency, and uptime. Includes hamburger menu for mobile/narrow
+    screens.
+
+  - CameraCard: Individual camera feed display with live frame rendering,
+    status indicator, and click-through to stream view.
+
+  - EventToast: Floating notification cards for real-time event alerts with
+    thumbnail, camera name, description, and timestamp.
+
+  - CldImage: Cloudinary-aware image component that uses the @cloudinary/react
+    AdvancedImage SDK for optimized delivery (auto format, auto quality,
+    responsive resizing) when the source is a Cloudinary URL, and falls back
+    to a standard <img> tag for other URLs.
+
+  - ConnectCard: "Add Camera" card in the dashboard grid that links to the
+    camera setup page.
+
+  - DiscoBg + SparkleParticles: Easter egg disco/sparkle mode background
+    animations toggled via demo mode.
+
+  - Footer: Simple footer with branding.
+
+Design System:
+  - Fonts: Manrope (display), Plus Jakarta Sans (body), JetBrains Mono (mono)
+  - Theme: CSS custom properties with dark/light mode support
+  - Color palette: Accent blue (#3B82F6), success green, warning amber, error red
+  - Responsive breakpoints at 1024px and 768px
+
+Demo Mode:
+  - Built-in demo mode (DemoContext + useDemo hook) that provides mock cameras,
+    mock frames, mock events, and mock toasts for offline demonstration without
+    a live backend connection. Toggled via a hidden interaction.
+
+WebSocket Integration:
+  - Per-camera frame streams: connects to wss://api.stalkertalker.club/ws/stream/{camera_id}
+    for live JPEG frames encoded as base64, rendered at ~1 FPS
+  - Global event stream: connects to wss://api.stalkertalker.club/ws/events for
+    real-time event notifications with auto-playing audio narration
+
+Vercel Configuration:
+  - SPA rewrites via vercel.json: all routes serve index.html for client-side routing
+  - Environment variables: VITE_API_URL, VITE_CLOUDINARY_CLOUD_NAME
+
+
+BACKEND
+-------
+Technology: Python 3.11, FastAPI, Uvicorn, Motor (async MongoDB), OpenCV
+
+The backend is a FastAPI application running on a Vultr VPS behind Nginx with
+Let's Encrypt SSL. It handles camera management, stream ingestion, ML inference,
+event processing, and real-time WebSocket communication.
+
+API Endpoints:
+  - GET /health: Returns system status and list of active stream IDs
+  - GET /cameras: List all cameras with metadata
+  - GET /cameras/{id}: Get single camera details
+  - POST /cameras: Create a new camera and start its stream
+  - PUT /cameras/{id}: Update camera settings (name, context, threshold)
+  - DELETE /cameras/{id}: Delete camera and stop its stream
+  - GET /events: List events, optionally filtered by camera_id
+  - WS /ws/stream/{camera_id}: Live frame WebSocket per camera
+  - WS /ws/events: Global event broadcast WebSocket
+  - POST /test/fire-event: Dev endpoint to broadcast a fake event
+
+Application Lifespan:
+  On startup, the app:
+    1. Initializes Solana logger and funds wallet if needed
+    2. Resumes all cameras marked "active" in MongoDB
+    3. Starts the detection monitor async loop
+  On shutdown:
+    1. Stops the detection monitor
+    2. Stops all active streams
+
+CORS: Configured with allow_origins=["*"] for cross-origin requests from the
+Vercel-hosted frontend.
+
+Database (database.py):
+  - MongoDB Atlas via Motor async driver
+  - Collections: cameras, events, people (for face embeddings)
+  - Connection string from MONGODB_URI environment variable
+
+Models (models.py):
+  - Pydantic schemas for CameraCreate, CameraUpdate, CameraOut, EventOut
+  - Handles MongoDB ObjectId serialization via model validators
+
+
+ML PIPELINE
+-----------
+
+Two-Stage Detection (classifier.py):
+  The classifier runs a two-stage inference pipeline on every new frame:
+
+  Stage 1 — YOLOv8 Nano Person Detection:
+    - Model: yolov8n.pt (auto-downloaded by Ultralytics library)
+    - Detects people in the frame with bounding boxes
+    - Configured with person class filter (class 0 only)
+    - Confidence threshold: 0.25
+    - Returns list of (x1, y1, x2, y2) bounding boxes
+
+  Stage 2 — ResNet-18 Notable Scoring:
+    - Model: Custom fine-tuned ResNet-18 binary classifier
+    - Architecture: torchvision ResNet-18 with final FC layer replaced with
+      2-class output (mundane=0, notable=1)
+    - Input: 224x224 RGB image normalized with ImageNet mean/std
+    - Output: softmax probability for "notable" class (0.0 to 1.0)
+    - Model file: ml/models/sentinel_resnet18.pt (43 MB)
+
+Detection Monitor (detection_monitor.py):
+  Async loop that runs every 1 second and processes each active camera:
+    1. Get latest JPEG frame from stream manager
+    2. Hash-check first 256 bytes to skip duplicate/unchanged frames
+    3. Decode JPEG to BGR numpy array via OpenCV
+    4. Refresh camera threshold/context from MongoDB (cached 5 seconds)
+    5. Run classifier.classify(frame) — YOLO + ResNet
+    6. Log classification result (camera ID, notable score, threshold, people count)
+    7. If notable_confidence < threshold, skip
+    8. Check event cooldown (default 20 seconds between events per camera)
+    9. Run face identification on detected person bounding boxes
+    10. Collect frames from circular buffer (8 seconds before trigger)
+    11. Trigger event pipeline
+
+Training Pipeline (ml/):
+  - collect_frames.py: Downloads videos from URLs in video_manifest.json,
+    extracts frames at 1 FPS into ml/data/frames/{video_id}/frame_XXXXXX.jpg
+  - notable_ranges.json: Defines time windows when activity is "notable"
+    for each video
+  - label_frames.py: Reads notable_ranges.json and assigns binary labels
+    (0=mundane, 1=notable) to each frame, outputs ml/labels.json
+  - dataset.py: PyTorch Dataset class that loads labeled frames with
+    train/val split and augmentation transforms
+  - train.py: Fine-tunes ResNet-18 with frozen early layers + unfrozen
+    layer4. Binary cross-entropy loss, AdamW optimizer, 12 epochs.
+    Saves best checkpoint to ml/models/sentinel_resnet18.pt and training
+    history to ml/models/training_history.json
+  - infer.py: Standalone inference script for testing the model on
+    individual images or directories
+
+Model iteration story: Started with broad weak labels achieving ~53% validation
+accuracy, then focused on specific scenarios (fridge interaction labels) reaching
+~83% validation accuracy.
+
+
+EVENT PIPELINE
+--------------
+File: backend/services/event_pipeline.py
+
+When the detection monitor flags a notable frame, the event pipeline executes
+a 6-stage async pipeline:
+
+  Stage 1 — AI Reasoning (reasoning.py):
+    - Model: Gemma 4 26B MoE (gemma-4-26b-a4b-it) via Google Gemini API
+    - Input: Up to 6 sampled JPEG frames + camera context string
+    - Prompt: "You are a security analyst. Describe what happened in <=40 words,
+      mention who/what, and tie it to the camera context."
+    - Output: Concise human-readable event description
+    - Fallback: "Notable activity detected. Context: {context}" if API fails
+
+  Stage 2 — Audio Narration (narration.py):
+    - Service: ElevenLabs Text-to-Speech API
+    - Voice: Default voice ID 21m00Tcm4TlvDq8ikWAM
+    - Output: MP3 audio at 44.1kHz, 128kbps
+    - Fallback: None (event created without audio)
+
+  Stage 3 — Media Upload (cloudinary_upload.py):
+    - Runs in parallel via asyncio.gather():
+      a. Upload sampled frames (max 8) as JPEGs to Cloudinary CDN
+      b. Upload MP3 narration audio to Cloudinary CDN
+    - Returns secure URLs for all uploaded assets
+    - Fallback: stub URLs (https://stub.local/...) if Cloudinary not configured
+
+  Stage 4 — Database Persistence:
+    - Inserts event document into MongoDB events collection
+    - Document fields: camera_id, camera_name, timestamp, confidence,
+      description, frames (URL array), thumbnail (first frame URL),
+      audio_url, solana_tx, context_used
+
+  Stage 5 — Blockchain Logging (solana_logger.py):
+    - Computes SHA-256 hash of event data (camera_id, timestamp, description,
+      confidence)
+    - Submits hash to Solana Devnet via the Memo program
+    - Stores transaction signature back in MongoDB event document
+    - Wallet management: loads keypair from SOLANA_PRIVATE_KEY env var,
+      auto-funds via devnet airdrop if balance is low
+    - Fallback: event created without on-chain proof if Solana fails
+
+  Stage 6 — Real-Time Broadcast:
+    - Serializes event document to JSON
+    - Broadcasts to all connected /ws/events WebSocket subscribers
+    - Frontend renders event toast with thumbnail, description, and auto-plays
+      audio narration
+
+All stages use safe fallbacks — if any external API fails, the pipeline
+continues and the event is still created with whatever data succeeded.
+
+
+STREAM MANAGER
+--------------
+File: backend/services/stream_manager.py
+
+Handles ingestion from multiple camera stream types:
+
+Transport Detection:
+  - cv2 transport: Used for RTSP, HTTP MJPEG, and HLS (.m3u8) streams
+  - OpenCV VideoCapture opens the stream URL and reads frames in a
+    background thread
+
+Frame Management:
+  - Circular buffer: Stores 60 seconds of frames at 0.5-second intervals
+  - Frame encoding: Each frame is JPEG-compressed at quality 60
+  - Public API:
+    - get_latest_frame(camera_id) -> bytes: Returns most recent JPEG
+    - get_buffer_window(camera_id, before_s, after_s) -> list[bytes]:
+      Returns frames from a time window around the current moment
+  - Automatic retry: If cv2 open fails, retries every 10 seconds
+
+WebSocket Fan-out (connection_manager.py):
+  - ConnectionManager maintains subscriber lists for:
+    - Per-camera frame streams (/ws/stream/{camera_id})
+    - Global event stream (/ws/events)
+  - send_frame(): Broadcasts base64-encoded JPEG to all subscribers of a camera
+  - send_event(): Broadcasts JSON event data to all event subscribers
+
+
+FACE RECOGNITION SERVICE
+-------------------------
+File: backend/services/face_service.py
+
+  - Uses the face_recognition library (built on dlib) for face detection
+    and embedding computation
+  - Compares face embeddings via cosine similarity (threshold 0.6)
+  - Stores and retrieves known face embeddings from MongoDB people collection
+  - Unknown faces are auto-labeled as "unknown_person_{counter}"
+  - When known faces are identified in an event, their names are appended
+    to the camera context sent to the reasoning model
+
+
+FETCH.AI AGENT
+--------------
+File: agent/agent.py
+
+A Fetch.ai uAgents service running on port 8001:
+  - Integrates with ASI:One LLM routing API for natural language queries
+  - Registered on Agentverse for discoverability
+  - Can query SentinelAI event data and provide conversational responses
+  - Configuration: ASI1_API_KEY, SENTINEL_API_URL, AGENTVERSE_KEY, AGENT_SEED_PHRASE
+  - Independent service — not required for the core detection pipeline
+
+
+SOLANA INTEGRATION
+------------------
+File: backend/services/solana_logger.py
+
+Provides tamper-evident proof of security events on the Solana blockchain:
+
+  - Network: Solana Devnet
+  - Program: SPL Memo program (logs arbitrary data as transaction memos)
+  - Process:
+    1. Event data (camera_id, timestamp, description, confidence) is serialized
+       as JSON and hashed with SHA-256
+    2. The hash is submitted as a memo transaction to Solana Devnet
+    3. The transaction signature is stored in the MongoDB event document
+    4. Frontend links to Solana Explorer for verification
+
+  - Wallet Management:
+    - Loads Ed25519 keypair from SOLANA_PRIVATE_KEY env var (base64-encoded)
+    - If not set, generates a new keypair on each startup
+    - Auto-funds wallet via devnet airdrop if balance < 0.5 SOL
+    - Logs wallet public key on startup
+
+  - Why: Creates an immutable, timestamped record that proves a specific event
+    was detected at a specific time. Useful for insurance claims, compliance
+    audits, and legal evidence where the integrity of security footage metadata
+    must be verifiable by third parties.
+
+
+INFRASTRUCTURE
+--------------
+
+Hosting:
+  - Frontend: Vercel (auto-deploys from GitHub master branch)
+  - Backend: Vultr VPS ($6/mo, 1 vCPU, 1 GB RAM + 2 GB swap)
+  - Domain: stalkertalker.club via GoDaddy
+  - DNS: www/@ -> Vercel, api -> Vultr public IP
+
+Nginx (infrastructure/nginx.conf):
+  - Reverse proxy on ports 80/443
+  - SSL via Let's Encrypt + Certbot (auto-configured)
+  - WebSocket upgrade support for /ws/ paths with 3600s timeout
+  - Regular API proxy with 60s timeout
+  - Client max body size: 50 MB
+
+Systemd Service (infrastructure/sentinelai.service):
+  - Runs as dedicated "sentinel" user
+  - Uvicorn on 127.0.0.1:8000 with proxy headers
+  - Auto-restart on failure with 5-second delay
+  - Loads environment from /opt/sentinelai/backend/.env
+
+Setup Script (infrastructure/setup.sh):
+  - One-command bootstrap for fresh Ubuntu 22.04/24.04
+  - Installs: Python 3.11, OpenCV deps, cmake, g++, nginx, certbot, git
+  - Creates sentinel user, clones repo, sets up venv, installs pip deps
+  - Configures systemd unit and nginx site
+  - Opens firewall for Nginx and SSH
+
+Deploy Script (infrastructure/deploy.sh):
+  - Pulls latest code from specified branch
+  - Reinstalls pip dependencies
+  - Restarts systemd service
+  - Runs health check
+
+
+ENVIRONMENT VARIABLES
+---------------------
+
+Backend (.env):
+  MONGODB_URI          — MongoDB Atlas connection string
+  MONGODB_DB           — Database name (sentinelai)
+  CLOUDINARY_CLOUD_NAME — Cloudinary cloud identifier
+  CLOUDINARY_API_KEY    — Cloudinary API key
+  CLOUDINARY_API_SECRET — Cloudinary API secret
+  GEMINI_API_KEY        — Google AI API key (used for Gemma 4)
+  ELEVENLABS_API_KEY    — ElevenLabs TTS API key
+  SOLANA_PRIVATE_KEY    — Base64-encoded Solana keypair (optional)
+  RESNET_MODEL_PATH     — Path to ResNet-18 model file
+
+Frontend (Vercel env vars):
+  VITE_API_URL              — Backend API URL (https://api.stalkertalker.club)
+  VITE_CLOUDINARY_CLOUD_NAME — Cloudinary cloud name for image rendering
+
+Agent (.env):
+  ASI1_API_KEY       — ASI:One LLM routing API key
+  SENTINEL_API_URL   — Backend API URL
+  AGENTVERSE_KEY     — Fetch.ai Agentverse JWT token
+  AGENT_SEED_PHRASE  — Deterministic seed for Agentverse registration
+
+
+EXTERNAL SERVICES
+-----------------
+  - MongoDB Atlas: Event and camera data persistence
+  - Google Gemini API: Gemma 4 26B MoE for multimodal event reasoning
+  - ElevenLabs: Text-to-speech narration of event descriptions
+  - Cloudinary: CDN for captured frames and audio files
+  - Solana Devnet: Blockchain event hash logging via Memo program
+  - Fetch.ai / ASI:One: Agent-based conversational queries (optional)
+  - Caltrans CCTV: Public HLS camera streams used for live testing
+
+
+KEY METRICS
+-----------
+  - Built end-to-end in 36 hours by 3 engineers
+  - 2+ live camera streams running on production Vultr instance
+  - ML model iteration: ~53% val accuracy (broad labels) -> ~83% val accuracy
+    (focused labels)
+  - Pipeline latency: seconds from frame capture to narrated alert
+  - 6-stage async event pipeline with graceful fallbacks at every stage
+  - Cryptographic proof of every event on Solana blockchain

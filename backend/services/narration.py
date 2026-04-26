@@ -11,7 +11,7 @@ class NarrationService:
     """Generates short narration audio with ElevenLabs."""
 
     def __init__(self, voice_id: str | None = None) -> None:
-        self.voice_id = voice_id or os.getenv("ELEVENLABS_VOICE_ID", "21m00Tcm4TlvDq8ikWAM")
+        self.voice_id = voice_id or os.getenv("ELEVENLABS_VOICE_ID", "CwhRBWXzGAHq8TQ4Fs17")
         self._client = None
         api_key = os.getenv("ELEVENLABS_API_KEY")
         if not api_key:

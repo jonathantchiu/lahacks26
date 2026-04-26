@@ -38,6 +38,17 @@ The 1GB Vultr plan needs swap for dlib's C++ compilation:
 If the setup script (step 4) fails on dlib, re-run pip manually:
   sudo -u sentinel /opt/sentinelai/backend/venv/bin/pip install -r /opt/sentinelai/backend/requirements.txt
 
+Install YOLO (not in requirements.txt):
+  sudo -u sentinel /opt/sentinelai/backend/venv/bin/python3.11 -m pip install ultralytics
+
+Test YOLO import:
+  sudo -u sentinel /opt/sentinelai/backend/venv/bin/python3.11 -c "from ultralytics import YOLO; print('OK')"
+
+Fix systemd to allow YOLO cache access:
+  sudo sed -i 's/ProtectHome=true/ProtectHome=false/' /etc/systemd/system/sentinelai.service
+  sudo systemctl daemon-reload
+  sudo systemctl restart sentinelai
+
 
 STEP 4 — Run the setup script
 ------------------------------
