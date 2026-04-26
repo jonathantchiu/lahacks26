@@ -245,3 +245,219 @@ textarea:focus-visible, select:focus-visible {
   font-size: 13px;
   text-transform: none;
 }
+
+/* ---- Sparkle Mode ---- */
+.sparkle-mode {
+  --sparkle-pink: #ff6bc1;
+  --sparkle-purple: #c56cf0;
+  --sparkle-indigo: #7c5cfc;
+  --sparkle-cyan: #18dcff;
+  --sparkle-mint: #7efff5;
+}
+
+.sparkle-mode .brand {
+  background: linear-gradient(90deg, var(--sparkle-pink), var(--sparkle-purple), var(--sparkle-indigo), var(--sparkle-cyan), var(--sparkle-mint), var(--sparkle-pink));
+  background-size: 300% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: sparkle-gradient 2s linear infinite;
+  filter: brightness(1.2);
+}
+
+.sparkle-mode .brand::after {
+  content: ' \1F984';
+  -webkit-text-fill-color: initial;
+  font-size: 1.1em;
+}
+
+.sparkle-mode .brand-sub {
+  color: var(--sparkle-purple);
+  text-shadow: 0 0 8px rgba(197, 108, 240, 0.5);
+}
+
+@keyframes sparkle-gradient {
+  to { background-position: 300% center; }
+}
+
+/* Sidebar glow */
+.sparkle-mode .sidebar {
+  border-right-color: rgba(197, 108, 240, 0.15);
+  box-shadow: inset -1px 0 20px rgba(197, 108, 240, 0.05);
+}
+
+.sparkle-mode .nav-item.active {
+  background: linear-gradient(90deg, rgba(255, 107, 193, 0.12), rgba(197, 108, 240, 0.12));
+  color: var(--sparkle-purple);
+  box-shadow: inset 3px 0 0 var(--sparkle-pink);
+}
+
+.sparkle-mode .nav-item:hover {
+  color: var(--sparkle-pink);
+}
+
+/* Status bar shimmer */
+.sparkle-mode .status-bar {
+  border-bottom-color: rgba(197, 108, 240, 0.15);
+  background: linear-gradient(90deg, var(--bg-surface), rgba(197, 108, 240, 0.03), var(--bg-surface));
+  background-size: 200% 100%;
+  animation: sparkle-shimmer 4s ease infinite;
+}
+
+@keyframes sparkle-shimmer {
+  0%, 100% { background-position: 0% 0%; }
+  50% { background-position: 200% 0%; }
+}
+
+.sparkle-mode .status-indicator.ok {
+  background: var(--sparkle-pink);
+  box-shadow: 0 0 12px var(--sparkle-pink);
+}
+
+.sparkle-mode .status-value {
+  color: var(--sparkle-cyan);
+}
+
+/* Camera cards */
+.sparkle-mode .camera-card {
+  border-color: rgba(197, 108, 240, 0.1);
+  transition: all 0.3s ease;
+}
+
+.sparkle-mode .camera-card:hover {
+  border-color: rgba(197, 108, 240, 0.5);
+  box-shadow:
+    0 0 20px rgba(255, 107, 193, 0.15),
+    0 0 40px rgba(197, 108, 240, 0.1),
+    0 0 80px rgba(124, 92, 252, 0.05);
+  transform: translateY(-3px);
+}
+
+.sparkle-mode .status-badge.active {
+  background: rgba(255, 107, 193, 0.25);
+  color: var(--sparkle-pink);
+  box-shadow: 0 0 10px rgba(255, 107, 193, 0.3);
+}
+.sparkle-mode .status-badge.active .status-dot {
+  background: var(--sparkle-pink);
+  box-shadow: 0 0 8px var(--sparkle-pink), 0 0 16px rgba(255, 107, 193, 0.5);
+}
+
+.sparkle-mode .camera-name {
+  background: linear-gradient(90deg, var(--text-primary), var(--sparkle-cyan));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Connect card */
+.sparkle-mode .connect-card:hover {
+  border-color: var(--sparkle-purple);
+  background: linear-gradient(135deg, rgba(255, 107, 193, 0.05), rgba(124, 92, 252, 0.05));
+  box-shadow: 0 0 30px rgba(197, 108, 240, 0.1);
+}
+
+/* Buttons */
+.sparkle-mode .play-btn,
+.sparkle-mode .btn-primary {
+  background: linear-gradient(135deg, var(--sparkle-pink), var(--sparkle-purple), var(--sparkle-indigo));
+  background-size: 200% auto;
+  animation: sparkle-gradient 3s linear infinite;
+  box-shadow: 0 0 15px rgba(197, 108, 240, 0.3);
+}
+
+/* Event counter */
+.sparkle-mode .event-counter {
+  border-color: rgba(255, 107, 193, 0.3);
+  background: linear-gradient(135deg, rgba(255, 107, 193, 0.08), rgba(197, 108, 240, 0.08));
+  color: var(--sparkle-pink);
+  box-shadow: 0 0 15px rgba(255, 107, 193, 0.1);
+}
+.sparkle-mode .event-counter-dot {
+  background: var(--sparkle-pink);
+  box-shadow: 0 0 8px var(--sparkle-pink), 0 0 16px rgba(255, 107, 193, 0.5);
+}
+
+/* Event cards */
+.sparkle-mode .event-card:hover {
+  border-color: rgba(197, 108, 240, 0.3);
+  box-shadow: 0 0 20px rgba(197, 108, 240, 0.1);
+}
+
+.sparkle-mode .confidence-high {
+  background: linear-gradient(135deg, rgba(255, 107, 193, 0.15), rgba(197, 108, 240, 0.15));
+  color: var(--sparkle-pink);
+  border: 1px solid rgba(255, 107, 193, 0.2);
+}
+
+/* Toast glow */
+.sparkle-mode .event-toast {
+  border-left-color: var(--sparkle-purple);
+  box-shadow: 0 0 20px rgba(197, 108, 240, 0.2), var(--shadow-lg);
+}
+
+/* Footer */
+.sparkle-mode .app-footer {
+  border-top-color: rgba(197, 108, 240, 0.15);
+}
+
+.sparkle-mode .demo-toggle.active {
+  border-color: var(--sparkle-purple);
+  background: linear-gradient(135deg, rgba(255, 107, 193, 0.1), rgba(197, 108, 240, 0.1));
+  color: var(--sparkle-purple);
+}
+
+/* Scrollbar */
+.sparkle-mode ::-webkit-scrollbar-thumb {
+  background: rgba(197, 108, 240, 0.3);
+}
+.sparkle-mode ::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 107, 193, 0.5);
+}
+
+/* Headings shimmer */
+.sparkle-mode h1 {
+  background: linear-gradient(90deg, var(--text-primary), var(--sparkle-cyan), var(--text-primary));
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: sparkle-shimmer 4s ease infinite;
+}
+
+/* ---- Disco ball sparkle background ---- */
+.sparkle-bg {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 99998;
+}
+
+.disco-diamond {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  transform: rotate(45deg);
+  animation: disco-twinkle var(--dur) ease-in-out var(--delay) infinite;
+  opacity: 0;
+}
+
+.disco-diamond::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  background: inherit;
+  filter: blur(4px);
+  opacity: 0.6;
+  border-radius: 1px;
+}
+
+@keyframes disco-twinkle {
+  0%, 100% { opacity: 0; transform: rotate(45deg) scale(0.6); }
+  15% { opacity: 1; transform: rotate(45deg) scale(1.1); }
+  30% { opacity: 0.3; transform: rotate(45deg) scale(0.8); }
+  45% { opacity: 0.9; transform: rotate(45deg) scale(1); }
+  60% { opacity: 0; transform: rotate(45deg) scale(0.7); }
+  75% { opacity: 0.7; transform: rotate(45deg) scale(1.05); }
+  90% { opacity: 0.1; transform: rotate(45deg) scale(0.9); }
+}

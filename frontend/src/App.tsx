@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { DemoProvider } from './lib/DemoContext';
+import { useDemo } from './lib/useDemo';
 import Sidebar from './components/Sidebar';
 import StatusBar from './components/StatusBar';
+import DiscoBg from './components/DiscoBg';
 import Footer from './components/Footer';
 import Dashboard from './pages/Dashboard';
 import CameraSetup from './pages/CameraSetup';
@@ -11,9 +13,11 @@ import StreamView from './pages/StreamView';
 
 function AppShell() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { sparkleMode } = useDemo();
 
   return (
-    <div className="app-layout">
+    <div className={`app-layout ${sparkleMode ? 'sparkle-mode' : ''}`}>
+      {sparkleMode && <DiscoBg />}
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       {sidebarOpen && <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)} />}
       <div className="app-body">
@@ -24,21 +28,10 @@ function AppShell() {
             <Route path="/cameras/new" element={<CameraSetup />} />
             <Route path="/stream/:id" element={<StreamView />} />
             <Route path="/events" element={<EventHistory />} />
-            <Route path="/analytics" element={<Placeholder title="Threat Analytics" />} />
-            <Route path="/network" element={<Placeholder title="Network Security" />} />
           </Routes>
         </main>
         <Footer />
       </div>
-    </div>
-  );
-}
-
-function Placeholder({ title }: { title: string }) {
-  return (
-    <div className="placeholder-page">
-      <h1>{title}</h1>
-      <p>Coming soon.</p>
     </div>
   );
 }

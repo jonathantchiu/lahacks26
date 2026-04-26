@@ -61,6 +61,23 @@
   color: var(--text-dim);
 }
 
+.sparkle-secret {
+  background: none;
+  border: none;
+  outline: none;
+  cursor: text;
+  font: inherit;
+  color: inherit;
+  letter-spacing: inherit;
+  -webkit-user-select: none;
+  user-select: none;
+  display: inline;
+  padding: 0;
+  margin: 0;
+  line-height: inherit;
+  box-shadow: none;
+}
+
 @media (max-width: 768px) {
   .app-footer { padding: 10px 16px; }
   .footer-row { gap: 8px; }

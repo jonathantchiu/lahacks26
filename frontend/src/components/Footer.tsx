@@ -3,7 +3,7 @@ import './Footer.css';
 
 export default function Footer() {
   const year = new Date().getFullYear();
-  const { demoActive, toggleDemo } = useDemo();
+  const { demoActive, toggleDemo, toggleSparkle } = useDemo();
 
   return (
     <footer className="app-footer">
@@ -23,7 +23,9 @@ export default function Footer() {
           <span className="demo-toggle-dot" aria-hidden="true" />
           {demoActive ? 'Demo Active' : 'Load Demo'}
         </button>
-        <span className="footer-version mono-data">v0.1.0</span>
+        <span className="footer-version mono-data">
+          v<button className="sparkle-secret" onClick={toggleSparkle}>0</button>.1.0
+        </span>
       </div>
     </footer>
   );
