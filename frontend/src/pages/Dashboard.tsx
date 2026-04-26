@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Volume2, VolumeX } from 'lucide-react';
+import { VolumeX } from 'lucide-react';
 import CameraCard from '../components/CameraCard';
 import ConnectCard from '../components/ConnectCard';
 import EventToast from '../components/EventToast';
