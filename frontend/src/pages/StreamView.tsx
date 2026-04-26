@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, Settings, Trash2 } from 'lucide-react';
 import HlsPlayer from '../components/HlsPlayer';
-import { useDemo } from '../lib/useDemo';
 import { DEMO_POOL_CAMERA, DEMO_POOL_EVENT } from '../lib/mockData';
 import type { Camera, EventRecord } from '../types';
 import './StreamView.css';
@@ -12,8 +11,6 @@ const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 export default function StreamView() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { demoActive } = useDemo();
-
   const [liveCamera, setLiveCamera] = useState<Camera | undefined>(undefined);
   const [liveEvents, setLiveEvents] = useState<EventRecord[]>([]);
   const [liveFrame, setLiveFrame] = useState<string | null>(null);
