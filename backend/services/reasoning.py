@@ -32,13 +32,20 @@ class ReasoningService:
             sampled = self._sample_frames(frames, max_frames=6)
             parts = [{"mime_type": "image/jpeg", "data": f} for f in sampled]
             prompt = (
-                "You are a security analyst. Describe what happened in <=40 words, mention who/what, "
-                "and tie it to the camera context. Keep it direct and alarm-friendly.\n"
-                f"Camera context: {context or 'General monitoring'}"
+                "Output ONLY a single short alert sentence, nothing else. No thinking, no reasoning, no bullet points, no markdown.\n"
+                "You are a security camera analyst. Write one alert sentence (max 20 words) describing what you see in these frames.\n"
+                "Mention what is happening and tie it to the camera context.\n"
+                f"Camera context: {context or 'General monitoring'}\n"
+                "Example output: ALERT: Two vehicles detected traveling northbound on Highway 101 during peak hours."
             )
             response = await self._model.generate_content_async([prompt, *parts])
             text = (response.text or "").strip()
-            return text if text else self._fallback(context)
+            if text:
+                first_line = text.split("\n")[0].strip()
+                if first_line.startswith("*") or first_line.startswith("-"):
+                    first_line = first_line.lstrip("*- ").strip()
+                return first_line
+            return self._fallback(context)
         except Exception:
             logger.exception("Gemini reasoning call failed")
             return self._fallback(context)

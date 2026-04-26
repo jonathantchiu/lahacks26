@@ -74,6 +74,17 @@ async def get_event(event_id: str):
     return _to_response(doc)
 
 
+@router.delete("/{event_id}", status_code=204)
+async def delete_event(event_id: str):
+    try:
+        oid = ObjectId(event_id)
+    except (InvalidId, TypeError):
+        raise HTTPException(400, "Invalid event id")
+    result = await events_collection.delete_one({"_id": oid})
+    if result.deleted_count == 0:
+        raise HTTPException(404, "Event not found")
+
+
 @router.post("/test/trigger", response_model=EventResponse, status_code=201)
 async def trigger_test_event(camera_id: str, confidence: float = 0.9):
     """Dev-only: run the full event pipeline with a single stub frame."""
