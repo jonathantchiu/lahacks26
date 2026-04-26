@@ -27,8 +27,8 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
   return (
     <aside className={`sidebar ${open ? 'open' : ''}`}>
       <div className="sidebar-header">
-        <span className="brand">SentinelAI</span>
-        <span className="brand-sub">SENTINEL HQ</span>
+        <span className="brand">sentinel.ai</span>
+        <span className="brand-sub">Security Intelligence</span>
       </div>
 
       <nav className="sidebar-nav">

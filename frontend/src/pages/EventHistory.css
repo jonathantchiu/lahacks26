@@ -63,7 +63,7 @@
 .event-camera {
   font-family: var(--font-mono);
   font-size: 10px; font-weight: 500;
-  letter-spacing: 0.03em; text-transform: uppercase;
+  letter-spacing: 0.03em;
   color: var(--text-dim);
 }
 .event-time { color: var(--text-dim); }

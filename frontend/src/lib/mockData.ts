@@ -52,7 +52,7 @@ export const MOCK_EVENTS: EventRecord[] = [
   {
     id: 'evt-1',
     camera_id: 'cam-1',
-    camera_name: 'PERIMETER NORTH',
+    camera_name: 'Main Entrance A',
     timestamp: ago(3),
     confidence: 0.94,
     description: 'Unidentified Motion Detected. Multiple frame variance detected in high-security zone. AI classifier: "humanoid signature". Subject bypassed sector 4 gating mechanism.',
@@ -65,7 +65,7 @@ export const MOCK_EVENTS: EventRecord[] = [
   {
     id: 'evt-2',
     camera_id: 'cam-2',
-    camera_name: 'MAIN LOBBY',
+    camera_name: 'Lower Parking',
     timestamp: ago(12),
     confidence: 0.89,
     description: 'Deliverable Drop-off. Courier signature verified. Package placed in secure staging zone. No threat detected.',
@@ -78,7 +78,7 @@ export const MOCK_EVENTS: EventRecord[] = [
   {
     id: 'evt-3',
     camera_id: 'cam-3',
-    camera_name: 'SECURE SERVER ROOM',
+    camera_name: 'Cafeteria Lounge',
     timestamp: ago(28),
     confidence: 0.92,
     description: 'Thermal Threshold Warning. Cabinet 7B reporting irregular heat signature. Hardware failure likely. Recommend immediate site inspection.',

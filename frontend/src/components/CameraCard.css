@@ -71,15 +71,15 @@
   font-family: var(--font-display);
   font-size: 13px;
   font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  letter-spacing: -0.01em;
   color: var(--text-primary);
   margin-bottom: 1px;
 }
 
 .camera-context {
   font-family: var(--font-body);
-  font-size: 11px;
-  color: var(--text-dim);
+  font-size: 12px;
+  color: var(--text-muted);
   line-height: 1.4;
+  font-weight: 400;
 }
