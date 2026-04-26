@@ -4,7 +4,7 @@ import CameraCard from '../components/CameraCard';
 import ConnectCard from '../components/ConnectCard';
 import EventToast from '../components/EventToast';
 import { useDemo } from '../lib/useDemo';
-import { MOCK_CAMERAS, MOCK_FRAMES, MOCK_TOASTS } from '../lib/mockData';
+import { DEMO_POOL_CAMERA, DEMO_POOL_TOAST } from '../lib/mockData';
 import type { ToastEvent, Camera } from '../types';
 import './Dashboard.css';
 
@@ -19,24 +19,22 @@ export default function Dashboard() {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [frames, setFrames] = useState<Record<string, string>>({});
 
-  const cameras = demoActive ? MOCK_CAMERAS : liveCameras;
-  const displayFrames = demoActive ? MOCK_FRAMES : frames;
-  const displayToasts = demoActive ? MOCK_TOASTS : toasts;
+  const cameras = demoActive ? [DEMO_POOL_CAMERA, ...liveCameras] : liveCameras;
+  const displayFrames = frames;
+  const displayToasts = demoActive ? [DEMO_POOL_TOAST, ...toasts] : toasts;
 
   const fetchCameras = useCallback(() => {
-    if (demoActive) return;
     fetch(`${API_BASE}/cameras`)
       .then((r) => r.json())
       .then(setLiveCameras)
       .catch(() => {});
-  }, [demoActive]);
+  }, []);
 
   useEffect(() => {
     fetchCameras();
   }, [fetchCameras, location.key]);
 
   useEffect(() => {
-    if (demoActive) return;
     const connections: WebSocket[] = [];
 
     liveCameras.forEach((cam) => {
@@ -52,10 +50,9 @@ export default function Dashboard() {
     });
 
     return () => connections.forEach((ws) => ws.close());
-  }, [liveCameras, demoActive]);
+  }, [liveCameras]);
 
   useEffect(() => {
-    if (demoActive) return;
     const ws = new WebSocket(`${API_BASE.replace('http', 'ws')}/ws/events`);
 
     ws.onmessage = (msg) => {
@@ -76,7 +73,7 @@ export default function Dashboard() {
     };
 
     return () => ws.close();
-  }, [demoActive]);
+  }, []);
 
   return (
     <div className="dashboard">

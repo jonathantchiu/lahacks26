@@ -3,7 +3,7 @@ import { Play, ExternalLink, ChevronDown } from 'lucide-react';
 import type { EventRecord, Camera } from '../types';
 import CldImage from '../components/CldImage';
 import { useDemo } from '../lib/useDemo';
-import { MOCK_EVENTS, MOCK_CAMERAS } from '../lib/mockData';
+import { DEMO_POOL_CAMERA, DEMO_POOL_EVENT } from '../lib/mockData';
 import './EventHistory.css';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
@@ -16,19 +16,17 @@ export default function EventHistory() {
   const [filterCamera, setFilterCamera] = useState('');
   const [expandedEvent, setExpandedEvent] = useState<string | null>(null);
 
-  const events = demoActive ? MOCK_EVENTS : liveEvents;
-  const cameras = demoActive ? MOCK_CAMERAS : liveCameras;
+  const events = demoActive ? [DEMO_POOL_EVENT, ...liveEvents] : liveEvents;
+  const cameras = demoActive ? [DEMO_POOL_CAMERA, ...liveCameras] : liveCameras;
 
   useEffect(() => {
-    if (demoActive) return;
     fetch(`${API_BASE}/cameras`)
       .then((r) => r.json())
       .then(setLiveCameras)
       .catch(() => {});
-  }, [demoActive]);
+  }, []);
 
   useEffect(() => {
-    if (demoActive) return;
     let cancelled = false;
     const params = new URLSearchParams();
     if (filterCamera) params.set('camera_id', filterCamera);
@@ -39,7 +37,7 @@ export default function EventHistory() {
       .catch(() => { if (!cancelled) setLiveEvents([]); });
 
     return () => { cancelled = true; };
-  }, [filterCamera, demoActive]);
+  }, [filterCamera]);
 
   const toggleEvent = (id: string) => {
     setExpandedEvent(expandedEvent === id ? null : id);

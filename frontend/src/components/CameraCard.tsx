@@ -16,12 +16,18 @@ function isHls(url: string): boolean {
   return url.includes('.m3u8');
 }
 
+function isMp4(url: string): boolean {
+  return url.endsWith('.mp4');
+}
+
 export default function CameraCard({ id, name, context, status, streamUrl, frame }: CameraCardProps) {
   return (
     <Link to={`/stream/${id}`} className="camera-card">
       <div className="camera-feed">
         {isHls(streamUrl) ? (
           <HlsPlayer src={streamUrl} className="camera-feed-video" />
+        ) : isMp4(streamUrl) ? (
+          <video src={streamUrl} className="camera-feed-video" autoPlay loop muted playsInline />
         ) : frame ? (
           <img src={frame} alt={`${name} live feed`} />
         ) : (

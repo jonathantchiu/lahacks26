@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Menu } from 'lucide-react';
 import { useDemo } from '../lib/useDemo';
-import { MOCK_CAMERAS } from '../lib/mockData';
+import { DEMO_POOL_CAMERA } from '../lib/mockData';
 import type { Camera } from '../types';
 import './StatusBar.css';
 
@@ -16,14 +16,13 @@ export default function StatusBar({ onMenuClick }: StatusBarProps) {
   const [liveCameras, setLiveCameras] = useState<Camera[]>([]);
 
   useEffect(() => {
-    if (demoActive) return;
     fetch(`${API_BASE}/cameras`)
       .then((r) => r.json())
       .then(setLiveCameras)
       .catch(() => {});
-  }, [demoActive]);
+  }, []);
 
-  const cams = demoActive ? MOCK_CAMERAS : liveCameras;
+  const cams = demoActive ? [DEMO_POOL_CAMERA, ...liveCameras] : liveCameras;
   const cameras = cams.length;
   const online = cams.filter((c) => c.status === 'active').length;
   const offline = cameras - online;
