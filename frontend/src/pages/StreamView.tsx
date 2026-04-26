@@ -3,7 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, Settings, Trash2 } from 'lucide-react';
 import HlsPlayer from '../components/HlsPlayer';
 import { useDemo } from '../lib/useDemo';
-import { MOCK_CAMERAS, MOCK_FRAMES, MOCK_EVENTS } from '../lib/mockData';
+import { DEMO_POOL_CAMERA, DEMO_POOL_EVENT } from '../lib/mockData';
 import type { Camera, EventRecord } from '../types';
 import './StreamView.css';
 
@@ -18,40 +18,42 @@ export default function StreamView() {
   const [liveEvents, setLiveEvents] = useState<EventRecord[]>([]);
   const [liveFrame, setLiveFrame] = useState<string | null>(null);
 
+  const isDemo = id === 'demo-pool';
+
   useEffect(() => {
-    if (demoActive || !id) return;
+    if (isDemo || !id) return;
     fetch(`${API_BASE}/cameras/${id}`)
       .then((r) => r.ok ? r.json() : undefined)
       .then(setLiveCamera)
       .catch(() => {});
-  }, [id, demoActive]);
+  }, [id, isDemo]);
 
   useEffect(() => {
-    if (demoActive || !id) return;
+    if (isDemo || !id) return;
     fetch(`${API_BASE}/events?camera_id=${id}`)
       .then((r) => r.json())
       .then(setLiveEvents)
       .catch(() => {});
-  }, [id, demoActive]);
+  }, [id, isDemo]);
 
   useEffect(() => {
-    if (demoActive || !id) return;
+    if (isDemo || !id) return;
     const ws = new WebSocket(`${API_BASE.replace('http', 'ws')}/ws/stream/${id}`);
     ws.onmessage = (msg) => {
       const data = JSON.parse(msg.data);
       setLiveFrame(`data:image/jpeg;base64,${data.jpeg_b64 ?? data.frame}`);
     };
     return () => ws.close();
-  }, [id, demoActive]);
+  }, [id, isDemo]);
 
-  const camera: Camera | undefined = demoActive
-    ? MOCK_CAMERAS.find((c) => c.id === id)
+  const camera: Camera | undefined = isDemo
+    ? DEMO_POOL_CAMERA
     : liveCamera;
 
-  const frame = demoActive && id ? MOCK_FRAMES[id] : liveFrame;
+  const frame = liveFrame;
 
-  const events: EventRecord[] = demoActive
-    ? MOCK_EVENTS.filter((e) => e.camera_id === id)
+  const events: EventRecord[] = isDemo
+    ? [DEMO_POOL_EVENT]
     : liveEvents;
 
   if (!camera) {
@@ -101,6 +103,8 @@ export default function StreamView() {
           <div className="stream-feed">
             {camera.stream_url.includes('.m3u8') ? (
               <HlsPlayer src={camera.stream_url} className="stream-feed-video" />
+            ) : /\.(jpg|jpeg|png)$/i.test(camera.stream_url) ? (
+              <img src={camera.stream_url} alt={`${camera.name} feed`} style={{ objectFit: 'cover', width: '100%', height: '100%' }} />
             ) : frame ? (
               <img src={frame} alt={`${camera.name} live feed`} />
             ) : (

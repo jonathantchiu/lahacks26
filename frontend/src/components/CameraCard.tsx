@@ -16,8 +16,8 @@ function isHls(url: string): boolean {
   return url.includes('.m3u8');
 }
 
-function isMp4(url: string): boolean {
-  return url.endsWith('.mp4');
+function isStaticImage(url: string): boolean {
+  return /\.(jpg|jpeg|png)$/i.test(url);
 }
 
 export default function CameraCard({ id, name, context, status, streamUrl, frame }: CameraCardProps) {
@@ -26,8 +26,8 @@ export default function CameraCard({ id, name, context, status, streamUrl, frame
       <div className="camera-feed">
         {isHls(streamUrl) ? (
           <HlsPlayer src={streamUrl} className="camera-feed-video" />
-        ) : isMp4(streamUrl) ? (
-          <video src={streamUrl} className="camera-feed-video" autoPlay loop muted playsInline />
+        ) : isStaticImage(streamUrl) ? (
+          <img src={streamUrl} alt={`${name} feed`} className="camera-feed-video" style={{ objectFit: 'cover', width: '100%', height: '100%' }} />
         ) : frame ? (
           <img src={frame} alt={`${name} live feed`} />
         ) : (

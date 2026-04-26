@@ -3,7 +3,7 @@ import type { Camera, ToastEvent, EventRecord } from '../types';
 export const DEMO_POOL_CAMERA: Camera = {
   id: 'demo-pool',
   name: 'Pool',
-  stream_url: '/demo/baby.mp4',
+  stream_url: '/demo/pool.jpg',
   context: 'Monitor pool area for unauthorized access and child safety',
   status: 'active',
   threshold: 0.7,
