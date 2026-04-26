@@ -11,8 +11,22 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name
 
 from database import cameras_collection
 from routers import cameras, events, websocket
+from services.classifier import ClassifierService
+from services.detection_monitor import DetectionMonitor
 from services.event_pipeline import pipeline
+from services.face_service import FaceService
+from services.narration import NarrationService
+from services.reasoning import ReasoningService
 from services.stream_manager import stream_manager
+
+classifier_service = ClassifierService()
+face_service = FaceService()
+detection_monitor = DetectionMonitor(classifier_service, face_service)
+reasoning_service = ReasoningService()
+narration_service = NarrationService()
+
+pipeline.set_reasoning(reasoning_service.analyze_event)
+pipeline.set_narration(narration_service.narrate)
 
 
 async def _init_solana():
@@ -38,7 +52,9 @@ async def lifespan(app: FastAPI):
             await stream_manager.start_camera(str(doc["_id"]), doc["stream_url"])
         except Exception:
             logging.exception("failed to resume stream for %s", doc["_id"])
+    await detection_monitor.start()
     yield
+    await detection_monitor.stop()
     await stream_manager.stop_all()
 
 
