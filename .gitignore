@@ -6,6 +6,9 @@
 # Solana test wallet
 test_solana_wallet.json
 
+# Data
+data/
+
 # Python
 __pycache__/
 *.py[cod]
