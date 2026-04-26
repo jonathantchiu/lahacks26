@@ -22,7 +22,7 @@ export const DEMO_POOL_EVENT: EventRecord = {
   frames: ['/demo/baby.jpg'],
   thumbnail: '/demo/baby.jpg',
   audio_url: '',
-  solana_tx: '4vJ8kN3xR6pQ2wE9yH5jL7bF1cD8aG0kT3mS5uW7xY9z',
+  solana_tx: '2TN9oBFqhX362m3y7gG2Vq5ms7B5MDUEcctApg3K2kHx6eVohsQBG372y6wqieY36gZtvWYu7xn4kGHq6R2TuHJE',
   context_used: 'Monitor pool area for unauthorized access and child safety',
 };
 
