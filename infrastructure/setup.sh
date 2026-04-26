@@ -22,8 +22,9 @@ fi
 echo "==> apt update + base deps"
 apt-get update -y
 DEBIAN_FRONTEND=noninteractive apt-get install -y \
-  python3.11 python3.11-venv python3-pip \
+  python3.11 python3.11-venv python3.11-dev python3-pip \
   ffmpeg libsm6 libxext6 libgl1 \
+  cmake g++ build-essential \
   nginx git curl ca-certificates \
   certbot python3-certbot-nginx
 

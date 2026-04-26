@@ -21,7 +21,7 @@ function AppShell() {
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       {sidebarOpen && <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)} />}
       <div className="app-body">
-        <StatusBar />
+        <StatusBar onMenuClick={() => setSidebarOpen(true)} />
         <main className="main-content">
           <Routes>
             <Route path="/" element={<Dashboard />} />

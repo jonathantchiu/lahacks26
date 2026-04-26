@@ -1,0 +1,116 @@
+StalkerTalker Deployment Steps
+================================
+
+Frontend: www.stalkertalker.club → Vercel (already live)
+Backend:  api.stalkertalker.club → Vultr VPS
+
+
+STEP 1 — GoDaddy DNS
+---------------------
+Add an A record in GoDaddy DNS management for stalkertalker.club:
+
+  Type: A
+  Host: api
+  Points To: <your Vultr public IP>
+  TTL: 600
+
+
+STEP 2 — SSH into Vultr
+------------------------
+From the Vultr web console (dashboard → instance → View Console)
+or any terminal:
+
+  ssh root@<vultr-ip>
+
+The root password is on the Vultr instance overview page.
+
+
+STEP 3 — Install build dependencies + add swap
+------------------------------------------------
+  sudo apt-get install -y cmake g++ build-essential
+
+The 1GB Vultr plan needs swap for dlib's C++ compilation:
+  sudo fallocate -l 2G /swapfile
+  sudo chmod 600 /swapfile
+  sudo mkswap /swapfile
+  sudo swapon /swapfile
+
+If the setup script (step 4) fails on dlib, re-run pip manually:
+  sudo -u sentinel /opt/sentinelai/backend/venv/bin/pip install -r /opt/sentinelai/backend/requirements.txt
+
+
+STEP 4 — Run the setup script
+------------------------------
+  curl -fsSL https://raw.githubusercontent.com/jonathantchiu/lahacks26/master/infrastructure/setup.sh | sudo bash -s -- \
+    https://github.com/jonathantchiu/lahacks26.git master api.stalkertalker.club
+
+This installs Python, nginx, certbot, clones the repo, creates the
+Python venv, installs deps, and configures systemd + nginx.
+
+
+STEP 5 — Fill in API keys
+--------------------------
+  sudo -u sentinel nano /opt/sentinelai/backend/.env
+
+Set these values:
+  MONGODB_URI          — from MongoDB Atlas dashboard
+  MONGODB_DB           — sentinelai
+  CLOUDINARY_CLOUD_NAME — from Cloudinary console
+  CLOUDINARY_API_KEY    — from Cloudinary console
+  CLOUDINARY_API_SECRET — from Cloudinary console
+  GEMINI_API_KEY        — from Google AI Studio
+  ELEVENLABS_API_KEY    — from ElevenLabs dashboard
+  SOLANA_PRIVATE_KEY    — optional, leave blank if not using
+
+
+STEP 6 — Install systemd unit + start the backend
+---------------------------------------------------
+  sudo cp /opt/sentinelai/infrastructure/sentinelai.service /etc/systemd/system/sentinelai.service
+  sudo systemctl daemon-reload
+  sudo systemctl start sentinelai
+
+Check it's running:
+  curl http://127.0.0.1:8000/health
+
+Should return: {"status": "ok", "active_streams": [...]}
+
+If something is wrong:
+  sudo journalctl -u sentinelai -f
+
+
+STEP 7 — Fix nginx config + get HTTPS certificate
+----------------------------------------------------
+  sudo cp /opt/sentinelai/infrastructure/nginx.conf /etc/nginx/sites-available/sentinelai
+  sudo sed -i 's/__DOMAIN__/api.stalkertalker.club/g' /etc/nginx/sites-available/sentinelai
+  sudo ln -sf /etc/nginx/sites-available/sentinelai /etc/nginx/sites-enabled/sentinelai
+  sudo rm -f /etc/nginx/sites-enabled/default
+  sudo nginx -t && sudo systemctl reload nginx
+  sudo certbot --nginx -d api.stalkertalker.club
+
+Follow the prompts. Certbot will auto-configure nginx for SSL.
+
+
+STEP 8 — Set Vercel environment variable
+-----------------------------------------
+In Vercel project settings → Environment Variables, add:
+
+  VITE_API_URL = https://api.stalkertalker.club
+
+Then redeploy the frontend (Vercel dashboard → Deployments → Redeploy).
+
+
+STEP 9 — Verify end-to-end
+---------------------------
+From any machine:
+  curl https://api.stalkertalker.club/health
+
+Then open https://www.stalkertalker.club in a browser.
+The frontend should now be talking to the Vultr backend.
+
+
+REDEPLOYING AFTER CODE CHANGES
+-------------------------------
+SSH into Vultr, then:
+  sudo bash /opt/sentinelai/infrastructure/deploy.sh master
+
+This pulls latest code, reinstalls deps, and restarts the service.

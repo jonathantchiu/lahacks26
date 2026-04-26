@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Menu } from 'lucide-react';
 import { useDemo } from '../lib/useDemo';
 import { MOCK_CAMERAS } from '../lib/mockData';
 import type { Camera } from '../types';
@@ -6,7 +7,11 @@ import './StatusBar.css';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
-export default function StatusBar() {
+interface StatusBarProps {
+  onMenuClick?: () => void;
+}
+
+export default function StatusBar({ onMenuClick }: StatusBarProps) {
   const { demoActive } = useDemo();
   const [liveCameras, setLiveCameras] = useState<Camera[]>([]);
 
@@ -25,6 +30,9 @@ export default function StatusBar() {
 
   return (
     <div className="status-bar" role="status">
+      <button className="menu-toggle" onClick={onMenuClick} aria-label="Open menu">
+        <Menu size={18} />
+      </button>
       <div className="status-item">
         <span className={`status-indicator ${online > 0 ? 'ok' : 'down'}`} aria-hidden="true" />
         <span className="status-label">CAMERAS</span>

@@ -10,6 +10,24 @@
   z-index: 10;
 }
 
+.menu-toggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  margin-right: 8px;
+  border-radius: var(--radius-sm);
+  transition: background 0.12s, color 0.12s;
+}
+.menu-toggle:hover { background: var(--bg-surface-hover); color: var(--text-primary); }
+@media (max-width: 1024px) {
+  .menu-toggle { display: flex; }
+}
+
 .status-item {
   display: flex;
   align-items: center;
