@@ -66,11 +66,12 @@ class EventPipeline:
         camera_id: str,
         frames: list[bytes],
         confidence: float,
+        context_override: Optional[str] = None,
     ) -> dict[str, Any]:
         ts = datetime.now(timezone.utc)
 
         camera = await self._load_camera(camera_id)
-        context = camera.get("context", "") if camera else ""
+        context = context_override if context_override is not None else (camera.get("context", "") if camera else "")
         camera_name = camera.get("name") if camera else None
 
         description = await self._safe_call(
@@ -85,7 +86,8 @@ class EventPipeline:
             label="narration",
         )
 
-        frame_urls_task = upload_frames(frames) if frames else asyncio.sleep(0, result=[])
+        sampled_frames = self._sample_frames(frames, max_frames=8)
+        frame_urls_task = upload_frames(sampled_frames) if sampled_frames else asyncio.sleep(0, result=[])
         audio_url_task = (
             upload_audio(audio_bytes) if audio_bytes else asyncio.sleep(0, result=None)
         )
@@ -135,6 +137,13 @@ class EventPipeline:
         except Exception:
             logger.exception("%s failed; using fallback", label)
             return fallback
+
+    @staticmethod
+    def _sample_frames(frames: list[bytes], max_frames: int) -> list[bytes]:
+        if len(frames) <= max_frames:
+            return frames
+        step = max(1, len(frames) // max_frames)
+        return frames[::step][:max_frames]
 
     @staticmethod
     def _hash_event(doc: dict[str, Any]) -> str:
