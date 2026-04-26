@@ -4,6 +4,8 @@ import json
 import sys
 
 sys.path.insert(0, "/opt/sentinelai/backend")
+from dotenv import load_dotenv
+load_dotenv("/opt/sentinelai/backend/.env")
 from services.solana_logger import SolanaLogger
 
 
