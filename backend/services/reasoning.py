@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 class ReasoningService:
     """Builds concise event summaries with Gemini."""
 
-    def __init__(self, model_name: str = "gemini-1.5-flash") -> None:
+    def __init__(self, model_name: str = "gemma-4-26b-a4b-it") -> None:
         self.model_name = model_name
         self._model = None
 
