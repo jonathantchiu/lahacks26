@@ -1,7 +1,7 @@
 .toast-container {
   position: fixed;
-  bottom: 20px; right: 20px;
-  display: flex; flex-direction: column-reverse;
+  top: 20px; right: 20px;
+  display: flex; flex-direction: column;
   gap: 6px; z-index: 1000; max-width: 340px;
 }
 
@@ -15,7 +15,7 @@
   animation: toast-slide 0.2s ease-out;
 }
 @keyframes toast-slide {
-  from { transform: translateX(16px); opacity: 0; }
+  from { transform: translateY(-16px); opacity: 0; }
   to { transform: translateX(0); opacity: 1; }
 }
 
